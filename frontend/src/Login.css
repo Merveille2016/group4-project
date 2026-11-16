@@ -103,6 +103,11 @@ body {
   background-color: #2563eb;
 }
 
+.sign-in-btn:disabled {
+  background-color: #93b4f0;
+  cursor: not-allowed;
+}
+
 .footer-text {
   text-align: center;
   margin-top: 20px;

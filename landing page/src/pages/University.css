@@ -1,0 +1,361 @@
+.school-hero {
+  padding: 36px var(--gutter) 0;
+  color: #fff;
+  background: linear-gradient(120deg, #10234f 0%, var(--navy) 60%, #2c55b8);
+}
+
+.school-hero-inner {
+  max-width: var(--page);
+  margin: auto;
+}
+
+.breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 32px;
+  color: #93c5fd;
+  font-size: 13px;
+}
+
+.breadcrumb a {
+  color: #dbe7ff;
+}
+
+.breadcrumb a:hover {
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.breadcrumb [aria-current] {
+  color: #fff;
+  font-weight: 600;
+}
+
+.school-title {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.school-title .university-logo {
+  box-shadow: 0 0 0 4px #ffffff26;
+}
+
+.badge.light {
+  color: #fff;
+  background: #ffffff26;
+}
+
+.school-title h1 {
+  margin: 12px 0 6px;
+  font-family: Poppins, sans-serif;
+  font-size: clamp(26px, 3.4vw, 38px);
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+
+.alt-name {
+  margin: 0;
+  color: #bfdbfe;
+  font-size: 15px;
+}
+
+.school-stats {
+  display: flex;
+  gap: 1px;
+  margin: 36px 0 0;
+  overflow: hidden;
+  background: #ffffff1f;
+  border-radius: 14px 14px 0 0;
+}
+
+.school-stats div {
+  flex: 1;
+  padding: 20px 24px;
+  background: #ffffff0f;
+}
+
+.school-stats dt {
+  font-family: Poppins, sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.school-stats dd {
+  margin: 6px 0 0;
+  color: #bfdbfe;
+  font-size: 13px;
+}
+
+.school-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  align-items: start;
+  gap: 32px;
+  padding: 48px var(--gutter) 80px;
+}
+
+.departments h2,
+.info-card h2,
+.nearby h2 {
+  margin: 0 0 20px;
+  font-family: Poppins, sans-serif;
+  font-size: 22px;
+  letter-spacing: -0.02em;
+}
+
+.department {
+  margin-bottom: 16px;
+  padding: 22px 24px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.department header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.department h3 {
+  margin: 0;
+  font-family: Poppins, sans-serif;
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.department header span {
+  flex: none;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.department ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.department li {
+  padding: 7px 12px;
+  color: #334155;
+  background: var(--light);
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.school-sidebar {
+  position: sticky;
+  top: calc(var(--nav-height) + 20px);
+  display: grid;
+  gap: 20px;
+}
+
+.info-card {
+  padding: 24px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 10px 30px #1e3a8a0d;
+}
+
+.info-card h2 {
+  font-size: 18px;
+}
+
+.info-card dl {
+  margin: 0;
+}
+
+.info-card dl div {
+  padding: 14px 0;
+  border-top: 1px solid var(--border);
+}
+
+.info-card dl div:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.info-card dt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.info-card dt svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: var(--blue);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.info-card dd {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.info-card dd a {
+  color: var(--blue);
+  font-weight: 500;
+}
+
+.info-card dd a:hover {
+  text-decoration: underline;
+}
+
+.muted {
+  color: #94a3b8;
+}
+
+.visit-button {
+  display: block;
+  margin-top: 18px;
+  padding: 12px;
+  color: #fff;
+  text-align: center;
+  background: var(--navy);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.visit-button:hover {
+  background: var(--navy-dark);
+}
+
+.field-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.field-tags a {
+  padding: 6px 12px;
+  color: var(--navy);
+  background: var(--blue-soft);
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 0.2s, color 0.2s;
+}
+
+.field-tags a:hover {
+  color: #fff;
+  background: var(--blue);
+}
+
+.nearby {
+  padding: 64px var(--gutter) 80px;
+  background: var(--light);
+}
+
+.nearby-inner {
+  max-width: var(--page);
+  margin: auto;
+}
+
+.not-found {
+  max-width: 560px;
+  margin: auto;
+  padding: 120px 24px;
+  text-align: center;
+}
+
+.not-found h1 {
+  margin: 0 0 12px;
+  font-family: Poppins, sans-serif;
+  font-size: 30px;
+}
+
+.not-found p {
+  margin: 0 0 28px;
+  color: var(--muted);
+}
+
+.back-button {
+  display: inline-block;
+  padding: 12px 20px;
+  color: #fff;
+  background: var(--navy);
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .school-body {
+    grid-template-columns: 1fr;
+  }
+
+  .school-sidebar {
+    position: static;
+    order: -1;
+  }
+}
+
+@media (max-width: 600px) {
+  .school-hero {
+    padding: 28px 20px 0;
+  }
+
+  .school-title {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .university-logo.large {
+    width: 72px;
+    height: 72px;
+    font-size: 16px;
+  }
+
+  .school-stats div {
+    padding: 16px;
+  }
+
+  .school-stats dt {
+    font-size: 22px;
+  }
+
+  .school-body {
+    padding: 32px 20px 64px;
+  }
+
+  .department {
+    padding: 18px;
+  }
+
+  .department header {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .nearby {
+    padding: 48px 20px 64px;
+  }
+}

@@ -7,11 +7,13 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
     try {
       const response = await axios.post('http://localhost:5000/api/auth/login', {
@@ -26,6 +28,7 @@ const Login = () => {
       
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+      setLoading(false);
     }
   };
 
@@ -68,8 +71,8 @@ const Login = () => {
 
           <a href="#" className="forgot-password">Forgot password?</a>
 
-          <button type="submit" className="sign-in-btn">
-            Sign in
+          <button type="submit" className="sign-in-btn" disabled={loading}>
+            {loading ? 'Signing in...' : 'Sign in'}
           </button>
         </form>
 
