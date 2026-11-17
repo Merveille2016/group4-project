@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../auth/AuthContext'
+import PasswordInput from './PasswordInput'
 
 function DeleteAccount() {
   const { deleteAccount } = useAuth()
@@ -36,9 +37,8 @@ function DeleteAccount() {
       ) : (
         <form className="delete-form" onSubmit={handleSubmit}>
           <label htmlFor="delete-password">Enter your password to confirm</label>
-          <input
+          <PasswordInput
             id="delete-password"
-            type="password"
             autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}

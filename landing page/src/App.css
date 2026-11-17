@@ -1005,6 +1005,60 @@ section[id] {
   margin-left: 24px;
 }
 
+/* Password field with show/hide button */
+.password-input {
+  position: relative;
+}
+
+div.password-input > input {
+  width: 100%;
+  padding-right: 46px;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  color: #94a3b8;
+  background: none;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: color 0.15s, background 0.15s;
+}
+
+.password-toggle:hover:not(:disabled) {
+  color: var(--navy);
+  background: var(--light);
+}
+
+.password-toggle:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 1px;
+}
+
+.password-toggle:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.password-toggle svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 @media (max-width: 1050px) {
   .programme-grid {
     grid-template-columns: repeat(3, 1fr);

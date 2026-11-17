@@ -3,6 +3,7 @@ import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { GraduationCap } from '../components/Icons'
 import './Login.css'
+import PasswordInput from '../components/PasswordInput'
 
 function Signup() {
   const { user, signup } = useAuth()
@@ -79,9 +80,8 @@ function Signup() {
 
           <div className="field">
             <label htmlFor="password">Password</label>
-            <input
+            <PasswordInput
               id="password"
-              type="password"
               placeholder="At least 8 characters"
               autoComplete="new-password"
               minLength={8}
@@ -94,9 +94,8 @@ function Signup() {
 
           <div className="field">
             <label htmlFor="confirm">Confirm password</label>
-            <input
+            <PasswordInput
               id="confirm"
-              type="password"
               placeholder="Type your password again"
               autoComplete="new-password"
               value={confirm}

@@ -21,3 +21,11 @@ export function PhoneIcon() {
 export function BuildingIcon() {
   return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V8l8-5 8 5v13M9 21v-6h6v6M3 21h18" /></svg>
 }
+
+export function EyeIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></svg>
+}
+
+export function EyeOffIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.6 5.1A9.7 9.7 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-2.6 3.5M6.6 6.6C3.8 8.4 2 12 2 12s3.6 7 10 7c1.8 0 3.4-.5 4.7-1.3M9.9 9.9a3 3 0 0 0 4.2 4.2M3 3l18 18" /></svg>
+}

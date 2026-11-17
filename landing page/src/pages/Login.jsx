@@ -3,6 +3,7 @@ import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { GraduationCap } from '../components/Icons'
 import './Login.css'
+import PasswordInput from '../components/PasswordInput'
 
 function Login() {
   const { user, login } = useAuth()
@@ -67,9 +68,8 @@ function Login() {
 
           <div className="field">
             <label htmlFor="password">Password</label>
-            <input
+            <PasswordInput
               id="password"
-              type="password"
               placeholder="Your password"
               autoComplete="current-password"
               value={password}
