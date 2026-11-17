@@ -6,6 +6,7 @@ import DeleteAccount from '../components/DeleteAccount'
 import universities from '../data/universities'
 import programmes from '../data/programmes'
 import './Dashboard.css'
+import { firstName } from '../utils/name'
 
 const totalDepartments = universities.reduce((n, u) => n + u.departments.length, 0)
 const totalCourses = universities.reduce((n, u) => n + u.departments.reduce((m, d) => m + d.courses.length, 0), 0)
@@ -41,7 +42,7 @@ function Dashboard() {
     <main className="dashboard">
       <section className="dashboard-hero">
         <p className="eyebrow light">Dashboard</p>
-        <h1>Welcome back{user.name ? `, ${user.name.split(' ')[0]}` : ''}!</h1>
+        <h1>Welcome back{user.name ? `, ${firstName(user.name)}` : ''}!</h1>
         <p className="dashboard-sub">Logged in as <strong>{user.email}</strong></p>
       </section>
 

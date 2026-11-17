@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { GraduationCap } from './Icons'
 import useActiveSection from '../hooks/useActiveSection'
 import { useAuth } from '../auth/AuthContext'
+import { firstName } from '../utils/name'
 
 const links = [
   { id: 'home', label: 'Home' },
@@ -76,7 +77,7 @@ function Navbar() {
 
       {checking ? null : user ? (
         <div className="account">
-          <span className="account-email" title={user.email}>{user.name || user.email}</span>
+          <span className="account-email" title={user.name ? `${user.name} (${user.email})` : user.email}>{firstName(user.name) || user.email}</span>
           <button type="button" className="login-button" onClick={handleLogout}>Logout</button>
         </div>
       ) : (
