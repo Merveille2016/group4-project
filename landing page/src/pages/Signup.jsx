@@ -33,7 +33,7 @@ function Signup() {
     setLoading(true)
     try {
       await signup(name.trim(), email.trim(), password)
-      navigate('/login', { replace: true, state: { from, reason: 'registered', email: email.trim() } })
+      navigate('/login', { replace: true, state: { from, reason: 'registered' } })
     } catch (err) {
       setError(err.message)
       setLoading(false)
