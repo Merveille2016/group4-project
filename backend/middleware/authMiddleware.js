@@ -1,6 +1,6 @@
 const Admin = require('../models/Admin');
 
-// Only lets the request through if the session belongs to a logged-in admin
+// Only lets the request through if the session belongs to a logged in admin
 // whose account still exists (it may have been deleted from another device)
 const protect = async (req, res, next) => {
   if (!req.session || !req.session.admin) {
