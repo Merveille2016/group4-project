@@ -87,7 +87,7 @@ function Home() {
         <div className="hero-content">
           <p className="eyebrow light">Your future starts here</p>
           <h1>Find Your University<br /><span>in Cameroon</span></h1>
-          <p className="hero-description">Explore private universities, their departments, courses and official contacts — all in one place.</p>
+          <p className="hero-description">Explore private universities, their departments, courses and official contacts, all in one place.</p>
           <form className="search-bar" onSubmit={handleSearch}>
             <SearchIcon />
             <input

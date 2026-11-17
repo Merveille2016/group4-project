@@ -1,7 +1,7 @@
 .school-hero {
   padding: 36px var(--gutter) 0;
   color: #fff;
-  background: linear-gradient(120deg, #10234f 0%, var(--navy) 60%, #2c55b8);
+  background: var(--navy);
 }
 
 .school-hero-inner {

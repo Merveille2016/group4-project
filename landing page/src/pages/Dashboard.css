@@ -5,7 +5,7 @@
 .dashboard-hero {
   padding: 48px var(--gutter) 88px;
   color: #fff;
-  background: linear-gradient(120deg, #10234f 0%, var(--navy) 60%, #2c55b8);
+  background: var(--navy);
 }
 
 .dashboard-hero h1 {

@@ -13,7 +13,7 @@ function University() {
   useEffect(() => {
     const previousTitle = document.title
     window.scrollTo({ top: 0, behavior: 'instant' })
-    document.title = university ? `${university.short} — UniGuide Cameroon` : 'School not found — UniGuide Cameroon'
+    document.title = university ? `${university.short} | UniGuide Cameroon` : 'School not found | UniGuide Cameroon'
     return () => { document.title = previousTitle }
   }, [university])
 
