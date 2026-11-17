@@ -2,14 +2,18 @@ const express = require('express');
 const router = express.Router();
 const Admin = require('../models/Admin');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+const { protect } = require('../middleware/authMiddleware');
 
 // ==========================================
 // 1. ADMIN SIGNUP ROUTE
 // ==========================================
 router.post('/register', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { name, email, password } = req.body;
+
+    if (!name || !name.trim()) {
+      return res.status(400).json({ message: 'Name is required' });
+    }
 
     // Check if admin already exists
     const existingAdmin = await Admin.findOne({ email });
@@ -22,7 +26,7 @@ router.post('/register', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     // 2. Save the hashed password to the database
-    const newAdmin = new Admin({ email, password: hashedPassword });
+    const newAdmin = new Admin({ name, email, password: hashedPassword });
     await newAdmin.save();
 
     res.status(201).json({ message: 'Admin registered successfully!' });
@@ -50,22 +54,64 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Invalid email or password' });
     }
 
-    // 3. Generate a secure JWT token (Valid for 24 hours)
-    const token = jwt.sign(
-      { id: admin._id, role: admin.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '24h' }
-    );
-
-    // 4. Send token back to frontend
-    res.json({
-      message: 'Login successful',
-      token,
-      admin: { id: admin._id, email: admin.email, role: admin.role }
+    // 3. Start a fresh session (new id, so an old cookie can't be reused)
+    const account = { id: admin._id, name: admin.name, email: admin.email, role: admin.role };
+    req.session.regenerate((err) => {
+      if (err) {
+        return res.status(500).json({ message: 'Server error during login', error: err.message });
+      }
+      req.session.admin = account;
+      res.json({ message: 'Login successful', admin: account });
     });
   } catch (error) {
     res.status(500).json({ message: 'Server error during login', error: error.message });
   }
+});
+
+// ==========================================
+// 3. CURRENT USER (used by the frontend on page load)
+// ==========================================
+router.get('/me', protect, (req, res) => {
+  res.json({ admin: req.user });
+});
+
+// ==========================================
+// 4. DELETE OWN ACCOUNT (password required to confirm)
+// ==========================================
+router.delete('/me', protect, async (req, res) => {
+  try {
+    const { password } = req.body || {};
+    if (!password) {
+      return res.status(400).json({ message: 'Password is required' });
+    }
+
+    const admin = await Admin.findById(req.user.id);
+    const isMatch = await bcrypt.compare(password, admin.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Incorrect password' });
+    }
+
+    await admin.deleteOne();
+    req.session.destroy(() => {
+      res.clearCookie('uniguide.sid');
+      res.json({ message: 'Account deleted' });
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error while deleting account', error: error.message });
+  }
+});
+
+// ==========================================
+// 5. LOGOUT
+// ==========================================
+router.post('/logout', (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res.status(500).json({ message: 'Server error during logout', error: err.message });
+    }
+    res.clearCookie('uniguide.sid');
+    res.json({ message: 'Logged out' });
+  });
 });
 
 module.exports = router;
