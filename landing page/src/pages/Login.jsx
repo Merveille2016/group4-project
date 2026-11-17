@@ -4,7 +4,6 @@ import { useAuth } from '../auth/AuthContext'
 import { GraduationCap } from '../components/Icons'
 import './Login.css'
 import PasswordInput from '../components/PasswordInput'
-import { idleLabel } from '../auth/idle'
 
 function Login() {
   const { user, login } = useAuth()
@@ -18,7 +17,6 @@ function Login() {
   // Send people back to the page they came from
   const from = location.state?.from || '/'
   const notices = {
-    idle: `You were logged out after ${idleLabel()} of inactivity. Please log in again.`,
     expired: 'Your session has ended. Please log in again.',
   }
   const notice = !error && notices[location.state?.reason]

@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { AuthContext } from './AuthContext'
 import { IDLE_MINUTES } from './idle'
 import { AuthError, deleteAccountRequest, loginRequest, logoutRequest, meRequest, registerRequest } from '../api'
@@ -40,7 +39,6 @@ function clearOldTokenStorage() {
 function AuthProvider({ children }) {
   // `checking` is true until the backend tells us whether there's a session
   const [state, setState] = useState({ user: null, checking: true, endedBy: null })
-  const navigate = useNavigate()
   const lastActive = useRef(0)
 
   useEffect(() => {
@@ -91,9 +89,9 @@ function AuthProvider({ children }) {
     let lastWrite = 0
     lastActive.current = Date.now()
 
+    // Public pages stay where they are; protected ones send the person to /login (see RequireAuth)
     function endForInactivity() {
       logout('idle')
-      navigate('/login', { replace: true, state: { from: window.location.pathname, reason: 'idle' } })
     }
 
     function markActive() {
@@ -136,7 +134,7 @@ function AuthProvider({ children }) {
       document.removeEventListener('visibilitychange', checkIdle)
       clearInterval(timer)
     }
-  }, [loggedIn, logout, navigate])
+  }, [loggedIn, logout])
 
   return (
     <AuthContext.Provider value={{ ...state, login, signup, logout, deleteAccount }}>
