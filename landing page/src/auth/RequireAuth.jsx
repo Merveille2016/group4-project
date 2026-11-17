@@ -9,8 +9,8 @@ function RequireAuth({ children }) {
   if (checking) return <main className="auth-checking" aria-busy="true" />
 
   if (!user) {
-    // Someone who just clicked Logout wants to leave, not log in again
-    if (endedBy === 'user') return <Navigate to="/" replace />
+    // Someone who just logged out or deleted their account wants to leave, not log in again
+    if (endedBy === 'user' || endedBy === 'deleted') return <Navigate to="/" replace />
     return <Navigate to="/login" replace state={{ from: location.pathname, reason: endedBy }} />
   }
   return children

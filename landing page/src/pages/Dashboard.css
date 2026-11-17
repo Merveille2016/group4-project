@@ -205,6 +205,90 @@
   color: #94a3b8;
 }
 
+.danger-zone {
+  border-color: #fecdca;
+}
+
+.danger-zone h2 {
+  margin-bottom: 6px;
+  color: #b42318;
+}
+
+.danger-zone > p {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.danger-button,
+.cancel-button {
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background 0.2s, opacity 0.2s;
+}
+
+.danger-button {
+  color: #fff;
+  background: var(--red);
+  border: 0;
+}
+
+.danger-button:hover:not(:disabled) {
+  background: #d92d20;
+}
+
+.cancel-button {
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid var(--border);
+}
+
+.danger-button:disabled,
+.cancel-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.delete-form {
+  display: grid;
+  gap: 10px;
+  max-width: 380px;
+}
+
+.delete-form label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.delete-form input {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid #d8e0ea;
+  border-radius: 8px;
+  outline: none;
+  font: 15px Inter, sans-serif;
+}
+
+.delete-form input:focus {
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px #ef444426;
+}
+
+.delete-error {
+  margin: 0;
+  color: #b42318;
+  font-size: 14px;
+}
+
+.delete-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
 @media (max-width: 800px) {
   .dashboard-hero {
     padding: 36px 20px 80px;

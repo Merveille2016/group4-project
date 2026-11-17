@@ -48,6 +48,11 @@ Login starts a server-side session (stored in MongoDB, `sessions` collection) an
 - **Endpoint:** `/api/auth/logout` · **Method:** `POST`
 - Destroys the session on the server and clears the cookie.
 
+### 5. Delete own account
+- **Endpoint:** `/api/auth/me` · **Method:** `DELETE` · requires a logged-in session
+- **Body:** `{ "password": "..." }` to confirm
+- Deletes the account and ends the session. `400` if the password is wrong. Sessions on other devices stop working on their next request.
+
 ### Environment
 Copy `backend/.env.example` to `backend/.env`. `SESSION_SECRET` is required; `CLIENT_URL` lists the frontend addresses allowed to send the cookie.
 

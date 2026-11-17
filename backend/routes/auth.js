@@ -76,7 +76,33 @@ router.get('/me', protect, (req, res) => {
 });
 
 // ==========================================
-// 4. LOGOUT
+// 4. DELETE OWN ACCOUNT (password required to confirm)
+// ==========================================
+router.delete('/me', protect, async (req, res) => {
+  try {
+    const { password } = req.body || {};
+    if (!password) {
+      return res.status(400).json({ message: 'Password is required' });
+    }
+
+    const admin = await Admin.findById(req.user.id);
+    const isMatch = await bcrypt.compare(password, admin.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Incorrect password' });
+    }
+
+    await admin.deleteOne();
+    req.session.destroy(() => {
+      res.clearCookie('uniguide.sid');
+      res.json({ message: 'Account deleted' });
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error while deleting account', error: error.message });
+  }
+});
+
+// ==========================================
+// 5. LOGOUT
 // ==========================================
 router.post('/logout', (req, res) => {
   req.session.destroy((err) => {

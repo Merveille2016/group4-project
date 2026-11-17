@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AuthContext } from './AuthContext'
-import { AuthError, loginRequest, logoutRequest, meRequest, registerRequest } from '../api'
+import { AuthError, deleteAccountRequest, loginRequest, logoutRequest, meRequest, registerRequest } from '../api'
 
 // Keep in sync with SESSION_IDLE_MINUTES on the backend
 const IDLE_MINUTES = Number(import.meta.env.VITE_IDLE_MINUTES) || 5
@@ -76,6 +76,13 @@ function AuthProvider({ children }) {
     })
   }, [])
 
+  // The backend ends the session itself, so there's no logout call here
+  async function deleteAccount(password) {
+    await deleteAccountRequest(password)
+    writeStorage(LOGOUT_KEY, Date.now())
+    setState({ user: null, checking: false, endedBy: 'deleted' })
+  }
+
   const loggedIn = Boolean(state.user)
 
   useEffect(() => {
@@ -133,7 +140,7 @@ function AuthProvider({ children }) {
   }, [loggedIn, logout, navigate])
 
   return (
-    <AuthContext.Provider value={{ ...state, login, signup, logout }}>
+    <AuthContext.Provider value={{ ...state, login, signup, logout, deleteAccount }}>
       {children}
     </AuthContext.Provider>
   )

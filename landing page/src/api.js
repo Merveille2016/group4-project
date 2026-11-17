@@ -34,6 +34,16 @@ export function loginRequest(email, password) {
   return request('/api/auth/login', { method: 'POST', body: { email, password }, fallbackError: 'Login failed. Please try again.' })
 }
 
+export async function deleteAccountRequest(password) {
+  try {
+    return await request('/api/auth/me', { method: 'DELETE', body: { password }, fallbackError: 'Could not delete the account.' })
+  } catch (err) {
+    // A wrong password comes back as 400, but a 401 here would mean the session itself ended
+    if (err instanceof AuthError) throw new Error('Your session has ended. Please log in again.', { cause: err })
+    throw err
+  }
+}
+
 export function logoutRequest() {
   return request('/api/auth/logout', { method: 'POST' })
 }

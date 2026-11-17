@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { AuthError, dashboardRequest } from '../api'
+import DeleteAccount from '../components/DeleteAccount'
 import universities from '../data/universities'
 import programmes from '../data/programmes'
 import './Dashboard.css'
@@ -111,6 +112,8 @@ function Dashboard() {
             </table>
           </div>
         </section>
+
+        <DeleteAccount />
       </div>
     </main>
   )
