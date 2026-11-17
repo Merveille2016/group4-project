@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AuthContext } from './AuthContext'
+import { IDLE_MINUTES } from './idle'
 import { AuthError, deleteAccountRequest, loginRequest, logoutRequest, meRequest, registerRequest } from '../api'
 
-// Keep in sync with SESSION_IDLE_MINUTES on the backend
-const IDLE_MINUTES = Number(import.meta.env.VITE_IDLE_MINUTES) || 5
 const IDLE_LIMIT = IDLE_MINUTES * 60 * 1000
 const PING_EVERY = Math.min(60 * 1000, IDLE_LIMIT / 3)
 
