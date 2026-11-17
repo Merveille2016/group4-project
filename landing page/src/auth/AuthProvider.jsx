@@ -61,9 +61,9 @@ function AuthProvider({ children }) {
     setState({ user: data.admin, checking: false, endedBy: null })
   }
 
+  // Only creates the account; the person logs in themselves afterwards
   async function signup(name, email, password) {
     await registerRequest(name, email, password)
-    await login(email, password)
   }
 
   // reason: 'user' (clicked Logout), 'idle' (inactive too long) or 'expired' (server ended it)
