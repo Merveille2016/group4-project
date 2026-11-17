@@ -15,6 +15,11 @@ function Login() {
 
   // Send people back to the page they came from
   const from = location.state?.from || '/'
+  const notices = {
+    idle: 'You were logged out after 5 minutes of inactivity. Please log in again.',
+    expired: 'Your session has ended. Please log in again.',
+  }
+  const notice = !error && notices[location.state?.reason]
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' })
@@ -43,6 +48,7 @@ function Login() {
         <p className="form-intro">Sign in to your UniGuide account.</p>
 
         {error && <p className="form-error" role="alert">{error}</p>}
+        {notice && <p className="form-notice" role="status">{notice}</p>}
 
         <form className="auth-form" onSubmit={handleSubmit}>
           <div className="field">

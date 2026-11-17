@@ -9,6 +9,9 @@ const authRoutes = require('./routes/auth');
 
 const app = express();
 
+// Logged out after this many minutes without a request (keep in sync with VITE_IDLE_MINUTES on the frontend)
+const IDLE_MINUTES = Number(process.env.SESSION_IDLE_MINUTES) || 5;
+
 // The session cookie only works if CORS names the exact frontend origin
 const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:5173,http://localhost:5174').split(',');
 
@@ -20,12 +23,13 @@ app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
+  rolling: true, // every request pushes the expiry back, so it acts as an idle timeout
   store: MongoStore.create({ mongoUrl: process.env.MONGO_URI, collectionName: 'sessions' }),
   cookie: {
     httpOnly: true,
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',
-    maxAge: 24 * 60 * 60 * 1000
+    maxAge: IDLE_MINUTES * 60 * 1000
   }
 }));
 
