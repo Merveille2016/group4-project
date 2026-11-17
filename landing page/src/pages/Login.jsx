@@ -9,10 +9,12 @@ function Login() {
   const { user, login } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const [email, setEmail] = useState(location.state?.email || '')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  // Browsers do not autofill read only fields, so they unlock when clicked
+  const [locked, setLocked] = useState(true)
 
   // Send people back to the page they came from
   const from = location.state?.from || '/'
@@ -58,7 +60,9 @@ function Login() {
               id="email"
               type="email"
               placeholder="name@example.com"
-              autoComplete="email"
+              autoComplete="off"
+              readOnly={locked}
+              onFocus={() => setLocked(false)}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={loading}
@@ -71,7 +75,9 @@ function Login() {
             <PasswordInput
               id="password"
               placeholder="Your password"
-              autoComplete="current-password"
+              autoComplete="off"
+              readOnly={locked}
+              onFocus={() => setLocked(false)}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={loading}
