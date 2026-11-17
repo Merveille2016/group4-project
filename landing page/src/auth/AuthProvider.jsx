@@ -1,54 +1,37 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { AuthContext } from './AuthContext'
-import { loginRequest, registerRequest } from '../api'
+import { loginRequest, logoutRequest, meRequest, registerRequest } from '../api'
 
-// Same keys the admin frontend uses, so the stored shape stays consistent
-const TOKEN_KEY = 'token'
-const USER_KEY = 'user'
-
-// The backend issues 24h tokens; read the expiry from the payload so an old
-// token doesn't leave the navbar saying "Logout"
-function tokenExpired(token) {
+// Left over from the old token login; nothing reads them anymore
+function clearOldTokenStorage() {
   try {
-    const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')))
-    return payload.exp * 1000 < Date.now()
-  } catch {
-    return true
-  }
-}
-
-function clearStorage() {
-  try {
-    localStorage.removeItem(TOKEN_KEY)
-    localStorage.removeItem(USER_KEY)
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
   } catch {
     // storage blocked, nothing to clear
   }
 }
 
-function readStoredSession() {
-  try {
-    const token = localStorage.getItem(TOKEN_KEY)
-    const user = JSON.parse(localStorage.getItem(USER_KEY))
-    if (token && user && !tokenExpired(token)) return { user, token }
-  } catch {
-    // corrupted value, fall through and treat as logged out
-  }
-  clearStorage()
-  return { user: null, token: null }
-}
-
 function AuthProvider({ children }) {
-  const [session, setSession] = useState(readStoredSession)
+  // `checking` is true until the backend tells us whether there's a session
+  const [state, setState] = useState({ user: null, checking: true, endedBy: null })
+
+  useEffect(() => {
+    clearOldTokenStorage()
+    let cancelled = false
+
+    meRequest()
+      .then((data) => { if (!cancelled) setState({ user: data.admin, checking: false, endedBy: null }) })
+      .catch(() => { if (!cancelled) setState({ user: null, checking: false, endedBy: null }) })
+
+    return () => { cancelled = true }
+  }, [])
 
   async function login(email, password) {
     const data = await loginRequest(email, password)
-    localStorage.setItem(TOKEN_KEY, data.token)
-    localStorage.setItem(USER_KEY, JSON.stringify(data.admin))
-    setSession({ user: data.admin, token: data.token })
+    setState({ user: data.admin, checking: false, endedBy: null })
   }
 
-  // Register doesn't return a token, so log straight in afterwards
   async function signup(name, email, password) {
     await registerRequest(name, email, password)
     await login(email, password)
@@ -56,12 +39,14 @@ function AuthProvider({ children }) {
 
   // `expired` tells protected pages to send the person to /login instead of home
   const logout = useCallback((reason = 'user') => {
-    clearStorage()
-    setSession({ user: null, token: null, endedBy: reason })
+    setState({ user: null, checking: false, endedBy: reason })
+    logoutRequest().catch(() => {
+      // already logged out on the server, or it's down; either way we're done here
+    })
   }, [])
 
   return (
-    <AuthContext.Provider value={{ ...session, login, signup, logout }}>
+    <AuthContext.Provider value={{ ...state, login, signup, logout }}>
       {children}
     </AuthContext.Provider>
   )

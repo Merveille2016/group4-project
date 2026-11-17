@@ -2,8 +2,11 @@ import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from './AuthContext'
 
 function RequireAuth({ children }) {
-  const { user, endedBy } = useAuth()
+  const { user, checking, endedBy } = useAuth()
   const location = useLocation()
+
+  // Wait for the session check before deciding, or a refresh would bounce to /login
+  if (checking) return <main className="auth-checking" aria-busy="true" />
 
   if (!user) {
     // Someone who just clicked Logout wants to leave, not log in again

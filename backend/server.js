@@ -1,15 +1,33 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const session = require('express-session');
+const { MongoStore } = require('connect-mongo');
 require('dotenv').config();
 const { protect } = require('./middleware/authMiddleware');
 const authRoutes = require('./routes/auth');
 
 const app = express();
 
+// The session cookie only works if CORS names the exact frontend origin
+const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:5173,http://localhost:5174').split(',');
+
 // Middleware
-app.use(cors());
+app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json());
+app.use(session({
+  name: 'uniguide.sid',
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  store: MongoStore.create({ mongoUrl: process.env.MONGO_URI, collectionName: 'sessions' }),
+  cookie: {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 24 * 60 * 60 * 1000
+  }
+}));
 
 // Test route
 app.get('/', (req, res) => {

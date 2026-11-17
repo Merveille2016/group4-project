@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Admin = require('../models/Admin');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+const { protect } = require('../middleware/authMiddleware');
 
 // ==========================================
 // 1. ADMIN SIGNUP ROUTE
@@ -54,22 +54,38 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Invalid email or password' });
     }
 
-    // 3. Generate a secure JWT token (Valid for 24 hours)
-    const token = jwt.sign(
-      { id: admin._id, role: admin.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '24h' }
-    );
-
-    // 4. Send token back to frontend
-    res.json({
-      message: 'Login successful',
-      token,
-      admin: { id: admin._id, name: admin.name, email: admin.email, role: admin.role }
+    // 3. Start a fresh session (new id, so an old cookie can't be reused)
+    const account = { id: admin._id, name: admin.name, email: admin.email, role: admin.role };
+    req.session.regenerate((err) => {
+      if (err) {
+        return res.status(500).json({ message: 'Server error during login', error: err.message });
+      }
+      req.session.admin = account;
+      res.json({ message: 'Login successful', admin: account });
     });
   } catch (error) {
     res.status(500).json({ message: 'Server error during login', error: error.message });
   }
+});
+
+// ==========================================
+// 3. CURRENT USER (used by the frontend on page load)
+// ==========================================
+router.get('/me', protect, (req, res) => {
+  res.json({ admin: req.user });
+});
+
+// ==========================================
+// 4. LOGOUT
+// ==========================================
+router.post('/logout', (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res.status(500).json({ message: 'Server error during logout', error: err.message });
+    }
+    res.clearCookie('uniguide.sid');
+    res.json({ message: 'Logged out' });
+  });
 });
 
 module.exports = router;

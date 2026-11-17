@@ -1,29 +1,10 @@
-const jwt = require('jsonwebtoken');
-
+// Only lets the request through if the session belongs to a logged-in admin
 const protect = (req, res, next) => {
-  let token;
-
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-    try {
-      // Get token from header (removes the word "Bearer ")
-      token = req.headers.authorization.split(' ')[1];
-
-      // Verify token
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-      // Add user from payload to request
-      req.user = decoded;
-      
-      next(); // Move to the next step
-    } catch (error) {
-      console.error(error);
-      res.status(401).json({ message: 'Not authorized, token failed' });
-    }
+  if (req.session && req.session.admin) {
+    req.user = req.session.admin;
+    return next();
   }
-
-  if (!token) {
-    res.status(401).json({ message: 'Not authorized, no token' });
-  }
+  res.status(401).json({ message: 'Not authorized, please log in' });
 };
 
 module.exports = { protect };

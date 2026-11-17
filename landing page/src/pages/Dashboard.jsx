@@ -10,7 +10,7 @@ const totalDepartments = universities.reduce((n, u) => n + u.departments.length,
 const totalCourses = universities.reduce((n, u) => n + u.departments.reduce((m, d) => m + d.courses.length, 0), 0)
 
 function Dashboard() {
-  const { user, token, logout } = useAuth()
+  const { user, logout } = useAuth()
   const [status, setStatus] = useState({ loading: true, error: '', message: '' })
 
   useEffect(() => {
@@ -20,7 +20,7 @@ function Dashboard() {
   useEffect(() => {
     let cancelled = false
 
-    dashboardRequest(token)
+    dashboardRequest()
       .then((data) => {
         if (!cancelled) setStatus({ loading: false, error: '', message: data.message })
       })
@@ -34,7 +34,7 @@ function Dashboard() {
       })
 
     return () => { cancelled = true }
-  }, [token, logout])
+  }, [logout])
 
   return (
     <main className="dashboard">

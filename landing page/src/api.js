@@ -1,30 +1,16 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
-async function post(path, body, fallbackError) {
+export class AuthError extends Error {}
+
+// credentials: 'include' sends the session cookie to the backend on every call
+async function request(path, { method = 'GET', body, fallbackError } = {}) {
   let res
   try {
     res = await fetch(`${API_URL}${path}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    })
-  } catch {
-    throw new Error('Could not reach the server. Make sure the backend is running.')
-  }
-
-  const data = await res.json().catch(() => ({}))
-  if (!res.ok) throw new Error(data.message || fallbackError)
-  return data
-}
-
-export class AuthError extends Error {}
-
-// Protected route on the backend; a 401 means the token is no longer valid
-export async function dashboardRequest(token) {
-  let res
-  try {
-    res = await fetch(`${API_URL}/api/admin/secret-dashboard`, {
-      headers: { Authorization: `Bearer ${token}` },
+      method,
+      credentials: 'include',
+      headers: body ? { 'Content-Type': 'application/json' } : undefined,
+      body: body ? JSON.stringify(body) : undefined,
     })
   } catch {
     throw new Error('Could not reach the server. Make sure the backend is running.')
@@ -32,19 +18,31 @@ export async function dashboardRequest(token) {
 
   const data = await res.json().catch(() => ({}))
   if (res.status === 401) throw new AuthError(data.message || 'Your session has expired.')
-  if (!res.ok) throw new Error(data.message || 'Could not load the dashboard.')
+  if (!res.ok) throw new Error(data.message || fallbackError)
   return data
 }
 
+export function meRequest() {
+  return request('/api/auth/me')
+}
+
+export function dashboardRequest() {
+  return request('/api/admin/secret-dashboard', { fallbackError: 'Could not load the dashboard.' })
+}
+
 export function loginRequest(email, password) {
-  return post('/api/auth/login', { email, password }, 'Login failed. Please try again.')
+  return request('/api/auth/login', { method: 'POST', body: { email, password }, fallbackError: 'Login failed. Please try again.' })
+}
+
+export function logoutRequest() {
+  return request('/api/auth/logout', { method: 'POST' })
 }
 
 // The backend only has the admin register route for now, so student
 // accounts go through it too (they're saved with role "admin").
 export async function registerRequest(name, email, password) {
   try {
-    return await post('/api/auth/register', { name, email, password }, 'Sign up failed. Please try again.')
+    return await request('/api/auth/register', { method: 'POST', body: { name, email, password }, fallbackError: 'Sign up failed. Please try again.' })
   } catch (err) {
     // Backend says "Admin with this email already exists", reword it for students
     if (/already exists/i.test(err.message)) throw new Error('An account with this email already exists. Try logging in instead.', { cause: err })

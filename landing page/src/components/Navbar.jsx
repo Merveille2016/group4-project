@@ -15,7 +15,7 @@ const sectionIds = links.map((l) => l.id)
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const { pathname, search } = useLocation()
-  const { user, logout } = useAuth()
+  const { user, checking, logout } = useAuth()
   const onHome = pathname === '/'
   const scrolled = useActiveSection(sectionIds, onHome)
 
@@ -64,7 +64,7 @@ function Navbar() {
             Dashboard
           </Link>
         )}
-        {user ? (
+        {checking ? null : user ? (
           <button type="button" className="mobile-login" onClick={handleLogout}>Logout</button>
         ) : (
           <>
@@ -74,7 +74,7 @@ function Navbar() {
         )}
       </nav>
 
-      {user ? (
+      {checking ? null : user ? (
         <div className="account">
           <span className="account-email" title={user.email}>{user.name || user.email}</span>
           <button type="button" className="login-button" onClick={handleLogout}>Logout</button>

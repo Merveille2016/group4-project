@@ -36,6 +36,19 @@ Checks the email and password and returns the account details.
 }
 ```
 
-**Response:** `{ "message": "Login successful", "token": "...", "admin": { "id", "name", "email", "role" } }`
+**Response:** `{ "message": "Login successful", "admin": { "id", "name", "email", "role" } }`
+
+Login starts a server-side session (stored in MongoDB, `sessions` collection) and sets an httpOnly `uniguide.sid` cookie. The frontend must send requests with `credentials: 'include'`.
+
+### 3. Current user
+- **Endpoint:** `/api/auth/me` · **Method:** `GET`
+- Returns `{ "admin": { ... } }` if the session is valid, otherwise `401`.
+
+### 4. Logout
+- **Endpoint:** `/api/auth/logout` · **Method:** `POST`
+- Destroys the session on the server and clears the cookie.
+
+### Environment
+Copy `backend/.env.example` to `backend/.env`. `SESSION_SECRET` is required; `CLIENT_URL` lists the frontend addresses allowed to send the cookie.
 
 Accounts created before names were added have no `name`; the frontend shows their email instead.
