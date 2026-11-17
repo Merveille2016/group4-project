@@ -9,7 +9,7 @@ function Login() {
   const { user, login } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(location.state?.email || '')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -17,6 +17,7 @@ function Login() {
   // Send people back to the page they came from
   const from = location.state?.from || '/'
   const notices = {
+    registered: 'Your account has been created. Please log in.',
     expired: 'Your session has ended. Please log in again.',
   }
   const notice = !error && notices[location.state?.reason]
