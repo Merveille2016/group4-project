@@ -8,6 +8,7 @@ function Signup() {
   const { user, signup } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -30,7 +31,7 @@ function Signup() {
     setError('')
     setLoading(true)
     try {
-      await signup(email.trim(), password)
+      await signup(name.trim(), email.trim(), password)
       navigate(from, { replace: true })
     } catch (err) {
       setError(err.message)
@@ -48,6 +49,20 @@ function Signup() {
         {error && <p className="form-error" role="alert">{error}</p>}
 
         <form className="auth-form" onSubmit={handleSubmit}>
+          <div className="field">
+            <label htmlFor="name">Full name</label>
+            <input
+              id="name"
+              type="text"
+              placeholder="Your name"
+              autoComplete="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              disabled={loading}
+              required
+            />
+          </div>
+
           <div className="field">
             <label htmlFor="email">Email</label>
             <input

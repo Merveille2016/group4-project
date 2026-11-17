@@ -49,8 +49,8 @@ function AuthProvider({ children }) {
   }
 
   // Register doesn't return a token, so log straight in afterwards
-  async function signup(email, password) {
-    await registerRequest(email, password)
+  async function signup(name, email, password) {
+    await registerRequest(name, email, password)
     await login(email, password)
   }
 

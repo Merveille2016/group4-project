@@ -9,7 +9,11 @@ const jwt = require('jsonwebtoken');
 // ==========================================
 router.post('/register', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { name, email, password } = req.body;
+
+    if (!name || !name.trim()) {
+      return res.status(400).json({ message: 'Name is required' });
+    }
 
     // Check if admin already exists
     const existingAdmin = await Admin.findOne({ email });
@@ -22,7 +26,7 @@ router.post('/register', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     // 2. Save the hashed password to the database
-    const newAdmin = new Admin({ email, password: hashedPassword });
+    const newAdmin = new Admin({ name, email, password: hashedPassword });
     await newAdmin.save();
 
     res.status(201).json({ message: 'Admin registered successfully!' });
@@ -61,7 +65,7 @@ router.post('/login', async (req, res) => {
     res.json({
       message: 'Login successful',
       token,
-      admin: { id: admin._id, email: admin.email, role: admin.role }
+      admin: { id: admin._id, name: admin.name, email: admin.email, role: admin.role }
     });
   } catch (error) {
     res.status(500).json({ message: 'Server error during login', error: error.message });

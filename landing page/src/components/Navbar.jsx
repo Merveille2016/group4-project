@@ -76,7 +76,7 @@ function Navbar() {
 
       {user ? (
         <div className="account">
-          <span className="account-email" title={user.email}>{user.email}</span>
+          <span className="account-email" title={user.email}>{user.name || user.email}</span>
           <button type="button" className="login-button" onClick={handleLogout}>Logout</button>
         </div>
       ) : (

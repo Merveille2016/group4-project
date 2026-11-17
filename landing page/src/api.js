@@ -42,9 +42,9 @@ export function loginRequest(email, password) {
 
 // The backend only has the admin register route for now, so student
 // accounts go through it too (they're saved with role "admin").
-export async function registerRequest(email, password) {
+export async function registerRequest(name, email, password) {
   try {
-    return await post('/api/auth/register', { email, password }, 'Sign up failed. Please try again.')
+    return await post('/api/auth/register', { name, email, password }, 'Sign up failed. Please try again.')
   } catch (err) {
     // Backend says "Admin with this email already exists", reword it for students
     if (/already exists/i.test(err.message)) throw new Error('An account with this email already exists. Try logging in instead.', { cause: err })

@@ -40,7 +40,7 @@ function Dashboard() {
     <main className="dashboard">
       <section className="dashboard-hero">
         <p className="eyebrow light">Dashboard</p>
-        <h1>Welcome back!</h1>
+        <h1>Welcome back{user.name ? `, ${user.name.split(' ')[0]}` : ''}!</h1>
         <p className="dashboard-sub">Logged in as <strong>{user.email}</strong></p>
       </section>
 
@@ -49,6 +49,7 @@ function Dashboard() {
           <section className="panel">
             <h2>Your account</h2>
             <dl className="account-list">
+              <div><dt>Name</dt><dd>{user.name || <span className="muted">Not set</span>}</dd></div>
               <div><dt>Email</dt><dd>{user.email}</dd></div>
               <div><dt>Role</dt><dd><span className="role-badge">{user.role}</span></dd></div>
               <div>
