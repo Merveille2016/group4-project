@@ -15,7 +15,7 @@ const sectionIds = links.map((l) => l.id)
 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
-  const { pathname, search } = useLocation()
+  const { pathname, search, state: routeState } = useLocation()
   const { user, checking, logout } = useAuth()
   const onHome = pathname === '/'
   const scrolled = useActiveSection(sectionIds, onHome)
@@ -26,9 +26,12 @@ function Navbar() {
   else if (pathname.startsWith('/universities')) active = 'universities'
   else if (pathname === '/dashboard') active = 'dashboard'
 
-  // Don't send people back to the auth pages after they sign in
+  // Don't send people back to the auth pages after they sign in; when switching
+  // between login and signup, keep wherever they were originally headed
   const onAuthPage = pathname === '/login' || pathname === '/signup'
-  const loginState = onAuthPage ? undefined : { from: pathname + search }
+  const loginState = onAuthPage ? routeState : { from: pathname + search }
+  const showLogin = pathname !== '/login'
+  const showSignup = pathname !== '/signup'
 
   function handleLogout() {
     logout()
@@ -69,8 +72,8 @@ function Navbar() {
           <button type="button" className="mobile-login" onClick={handleLogout}>Logout</button>
         ) : (
           <>
-            <Link className="mobile-login" to="/login" state={loginState} onClick={() => setMenuOpen(false)}>Login</Link>
-            <Link className="mobile-login" to="/signup" state={loginState} onClick={() => setMenuOpen(false)}>Sign up</Link>
+            {showLogin && <Link className="mobile-login" to="/login" state={loginState} onClick={() => setMenuOpen(false)}>Login</Link>}
+            {showSignup && <Link className="mobile-login" to="/signup" state={loginState} onClick={() => setMenuOpen(false)}>Sign up</Link>}
           </>
         )}
       </nav>
@@ -82,8 +85,10 @@ function Navbar() {
         </div>
       ) : (
         <div className="account">
-          <Link className="signup-link" to="/signup" state={loginState}>Sign up</Link>
-          <Link className="login-button" to="/login" state={loginState}>Login <span>→</span></Link>
+          {showSignup && (
+            <Link className={showLogin ? 'signup-link' : 'login-button'} to="/signup" state={loginState}>Sign up</Link>
+          )}
+          {showLogin && <Link className="login-button" to="/login" state={loginState}>Login <span>→</span></Link>}
         </div>
       )}
       <button
