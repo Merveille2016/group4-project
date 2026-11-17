@@ -46,7 +46,7 @@ mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     console.log('✅ SUCCESS: Connected to MongoDB Atlas!');
     console.log('Database Name:', mongoose.connection.db.databaseName);
-       // A protected route that ONLY logged-in admins can see
+       // A protected route that ONLY logged in admins can see
    app.get('/api/admin/secret-dashboard', protect, (req, res) => {
      res.json({ 
        message: 'Welcome to the secret admin dashboard!', 

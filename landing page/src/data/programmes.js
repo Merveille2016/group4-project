@@ -3,7 +3,7 @@ import universities from './universities'
 // A school counts for a field if a department name or course has a word starting
 // with one of the keywords. `exclude` removes phrases that would give false matches
 // (e.g. "software engineering" shouldn't make a school count as Engineering).
-// Keep everything lowercase and accent-free.
+// Keep everything lowercase and without accents.
 const fields = [
   { id: 'computing', title: 'Computing & ICT', icon: '⌨', keywords: ['computer', 'software', 'ict', 'information technology', 'information system', 'network', 'cyber', 'data', 'web', 'telecom', 'computing'] },
   { id: 'engineering', title: 'Engineering', icon: '⚙', keywords: ['engineering', 'polytechnic', 'electrotechnics', 'mechatronics', 'architecture', 'public works', 'mining', 'maintenance'], exclude: ['software engineering'] },

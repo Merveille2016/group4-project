@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { EyeIcon, EyeOffIcon } from './Icons'
 
-// Drop-in replacement for <input type="password"> with a show/hide button
+// Use in place of <input type="password">; adds a button to show or hide the password
 function PasswordInput(props) {
   const [visible, setVisible] = useState(false)
 
