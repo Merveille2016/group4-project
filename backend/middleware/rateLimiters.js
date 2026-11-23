@@ -16,7 +16,8 @@ function makeLimiter({ windowMinutes, max }, { message, keyGenerator, skipSucces
 
 const byIp = (req) => ipKeyGenerator(req.ip);
 
-function createRateLimiters(limits = defaultConfig.rateLimits) {
+function createRateLimiters(overrides = {}) {
+  const limits = { ...defaultConfig.rateLimits, ...overrides };
   return {
     // Only failed attempts count
     login: makeLimiter(limits.login, {
@@ -48,6 +49,17 @@ function createRateLimiters(limits = defaultConfig.rateLimits) {
     resetPassword: makeLimiter(limits.resetPassword, {
       message: 'Too many password reset attempts. Please try again later.',
       keyGenerator: byIp,
+    }),
+
+    twoFactorVerify: makeLimiter(limits.twoFactorVerify, {
+      message: 'Too many code attempts from this network. Please try again later.',
+      keyGenerator: byIp,
+    }),
+
+    // Keyed by account, since these routes need a session
+    twoFactorManage: makeLimiter(limits.twoFactorManage, {
+      message: 'Too many two factor requests. Please try again later.',
+      keyGenerator: (req) => `admin:${req.user?.id || byIp(req)}`,
     }),
   };
 }

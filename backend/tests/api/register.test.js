@@ -15,7 +15,7 @@ describe('POST /api/auth/register', () => {
     const res = await register(app, valid).expect(201);
 
     expect(res.body.admin).toEqual({
-      id: expect.any(String), name: 'Jane Doe', email: 'jane@uniguide.cm', role: 'admin', tokenVersion: 0,
+      id: expect.any(String), name: 'Jane Doe', email: 'jane@uniguide.cm', role: 'admin', tokenVersion: 0, twoFactorEnabled: false,
     });
     expect(res.body.admin).not.toHaveProperty('password');
 

@@ -5,6 +5,7 @@ const session = require('express-session');
 const config = require('./config');
 const { protect } = require('./middleware/authMiddleware');
 const { createAuthRouter } = require('./routes/auth');
+const { createTwoFactorRouter } = require('./routes/twoFactor');
 const { createMailer } = require('./services/mailer');
 
 // Builds the app without connecting to MongoDB, so tests can make a fresh one
@@ -41,10 +42,9 @@ function createApp({ sessionStore, mailer = createMailer(), rateLimits = {} } = 
     res.send('UniGuide Cameroon Backend is running! 🚀');
   });
 
-  app.use('/api/auth', createAuthRouter({
-    mailer,
-    rateLimits: { ...config.rateLimits, ...rateLimits },
-  }));
+  const limits = { ...config.rateLimits, ...rateLimits };
+  app.use('/api/auth/2fa', createTwoFactorRouter({ rateLimits: limits }));
+  app.use('/api/auth', createAuthRouter({ mailer, rateLimits: limits }));
 
   app.get('/api/admin/secret-dashboard', protect, (req, res) => {
     res.json({

@@ -12,6 +12,9 @@ const clientUrls = (process.env.CLIENT_URL || 'http://localhost:5173,http://loca
 if (isProduction && !process.env.SESSION_SECRET) {
   throw new Error('SESSION_SECRET must be set in production');
 }
+if (isProduction && !process.env.TWO_FACTOR_KEY) {
+  throw new Error('TWO_FACTOR_KEY must be set in production');
+}
 
 module.exports = {
   isProduction,
@@ -42,6 +45,20 @@ module.exports = {
     maxLength: 128,
   },
 
+  preAuth: {
+    cookieName: 'uniguide.pa',
+    cookiePath: '/api/auth/2fa',
+    minutes: 5,
+    maxAttempts: 5,
+  },
+
+  twoFactor: {
+    issuer: 'UniGuide Cameroon',
+    // Used to encrypt TOTP secrets in the database
+    key: process.env.TWO_FACTOR_KEY || 'uniguide-dev-only-2fa-key-change-me',
+    backupCodeCount: 10,
+  },
+
   lockout: {
     threshold: num(process.env.LOCKOUT_THRESHOLD, 5),
     minutes: num(process.env.LOCKOUT_MINUTES, 15),
@@ -54,6 +71,8 @@ module.exports = {
     forgotPassword: { windowMinutes: 15, max: 5 },
     forgotPasswordPerEmail: { windowMinutes: 60, max: 3 },
     resetPassword: { windowMinutes: 15, max: 10 },
+    twoFactorVerify: { windowMinutes: 15, max: 10 },
+    twoFactorManage: { windowMinutes: 15, max: 20 },
   },
 
   smtp: {

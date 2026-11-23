@@ -5,6 +5,7 @@ const { createApp } = require('../app');
 const Admin = require('../models/Admin');
 const RefreshToken = require('../models/RefreshToken');
 const PasswordResetToken = require('../models/PasswordResetToken');
+const PreAuthToken = require('../models/PreAuthToken');
 const { hashPassword } = require('../services/password');
 const config = require('../config');
 
@@ -14,7 +15,7 @@ async function connectTestDb() {
   if (!process.env.TEST_MONGO_URI) throw new Error('TEST_MONGO_URI not set; is tests/globalSetup.js running?');
   const dbName = `uniguide_test_${crypto.randomBytes(4).toString('hex')}`;
   await mongoose.connect(process.env.TEST_MONGO_URI, { dbName });
-  await Promise.all([Admin.init(), RefreshToken.init(), PasswordResetToken.init()]);
+  await Promise.all([Admin.init(), RefreshToken.init(), PasswordResetToken.init(), PreAuthToken.init()]);
 }
 
 function assertTestDb() {
@@ -67,11 +68,13 @@ function getCookieHeader(res, name) {
 
 const REFRESH_COOKIE = config.refreshToken.cookieName;
 const SESSION_COOKIE = config.session.cookieName;
+const PRE_AUTH_COOKIE = config.preAuth.cookieName;
 
 module.exports = {
   DEFAULT_PASSWORD,
   REFRESH_COOKIE,
   SESSION_COOKIE,
+  PRE_AUTH_COOKIE,
   connectTestDb,
   clearTestDb,
   dropTestCollections,

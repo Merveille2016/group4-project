@@ -1,5 +1,6 @@
+const Admin = require('../models/Admin');
 const config = require('../config');
-const { issueRefreshToken } = require('./refreshTokens');
+const { issueRefreshToken, revokeAllForAdmin } = require('./refreshTokens');
 
 function toAccount(admin) {
   return {
@@ -8,6 +9,7 @@ function toAccount(admin) {
     email: admin.email,
     role: admin.role,
     tokenVersion: admin.tokenVersion,
+    twoFactorEnabled: Boolean(admin.twoFactorEnabled),
   };
 }
 
@@ -57,12 +59,33 @@ function clearAuthCookies(res) {
     sameSite: 'lax',
     path: '/',
   });
+  res.clearCookie(config.preAuth.cookieName, {
+    httpOnly: true,
+    secure: config.isProduction,
+    sameSite: 'lax',
+    path: config.preAuth.cookiePath,
+  });
 }
 
 async function establishLogin(req, res, admin, { family } = {}) {
   await startSession(req, admin);
   const { token } = await issueRefreshToken(admin, { family, ...requestMeta(req) });
   setRefreshCookie(res, token);
+}
+
+// Final step of every login: ends older sessions and hands out new cookies
+async function completeLogin(req, res, adminId, extra = {}) {
+  const updated = await Admin.findByIdAndUpdate(
+    adminId,
+    {
+      $set: { failedLoginAttempts: 0, lockoutUntil: null, lastLoginAt: new Date(), ...extra },
+      $inc: { tokenVersion: 1 },
+    },
+    { returnDocument: 'after' },
+  );
+  await revokeAllForAdmin(adminId, 'new-login');
+  await establishLogin(req, res, updated);
+  return updated;
 }
 
 module.exports = {
@@ -73,4 +96,5 @@ module.exports = {
   setRefreshCookie,
   clearAuthCookies,
   establishLogin,
+  completeLogin,
 };

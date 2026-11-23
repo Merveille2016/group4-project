@@ -6,7 +6,7 @@ This is the admin dashboard for the UniGuide Cameroon project.
 
 ```bash
 cd backend
-cp .env.example .env     # then fill in MONGO_URI and SESSION_SECRET
+cp .env.example .env     # then fill in MONGO_URI, SESSION_SECRET and TWO_FACTOR_KEY
 npm install
 npm run migrate          # apply database migrations (safe to run again)
 npm start
@@ -30,8 +30,9 @@ All responses are JSON, and errors look like `{ "message": "..." }`. The fronten
 | --- | --- | --- | --- |
 | `uniguide.sid` | Session ID (session stored in MongoDB, `sessions` collection) | `SESSION_IDLE_MINUTES` of inactivity (default 5) | every route |
 | `uniguide.rt` | Refresh token (random, stored only as a SHA-256 hash) | `REFRESH_TOKEN_DAYS` (default 7) | `/api/auth/*` only |
+| `uniguide.pa` | Pre-auth token, between the password and the 2FA code | 5 minutes | `/api/auth/2fa/*` only |
 
-Both cookies are `httpOnly` (page scripts can't read them), `SameSite=Lax`, and `Secure` in production.
+All cookies are `httpOnly` (page scripts can't read them), `SameSite=Lax`, and `Secure` in production.
 
 When the session expires, `POST /api/auth/refresh` swaps the refresh token for a new one and starts a new session. Each refresh token works once. If an already used token comes back more than 10 seconds later, someone kept a copy, so every token in that chain is revoked and the person has to log in again.
 
@@ -44,15 +45,22 @@ Passwords are hashed with **argon2id** (19 MiB memory, 2 passes). Accounts from 
 | Method | Path | Body | Success | Notes |
 | --- | --- | --- | --- | --- |
 | `POST` | `/api/auth/register` | `{ name, email, password }` | `201 { message, admin }` | Doesn't log in. `409` if the email exists. |
-| `POST` | `/api/auth/login` | `{ email, password }` | `200 { message, admin }` + both cookies | `400` wrong email or password, `429` locked or rate limited |
+| `POST` | `/api/auth/login` | `{ email, password }` | `200 { message, admin }` + both cookies, or `200 { message, twoFactorRequired: true }` + pre-auth cookie | `400` wrong email or password, `429` locked or rate limited |
 | `POST` | `/api/auth/refresh` | none (uses `uniguide.rt`) | `200 { message, admin }` + new cookies | `401` → log in again |
 | `GET` | `/api/auth/me` | none | `200 { admin }` | `401` if not logged in |
 | `POST` | `/api/auth/logout` | none | `200 { message }` | Works with only the refresh cookie too |
 | `POST` | `/api/auth/forgot-password` | `{ email }` | `200 { message }` | Same answer whether or not the email exists |
 | `POST` | `/api/auth/reset-password` | `{ token, password }` | `200 { message }` | `400` if the link is invalid, used or expired |
 | `DELETE` | `/api/auth/me` | `{ password }` | `200 { message }` | Needs a session. `400` wrong password. |
+| `POST` | `/api/auth/2fa/verify` | `{ code }` | `200 { message, admin }` + both cookies | Needs the pre-auth cookie. `400` wrong code, `401` sign in again. |
+| `POST` | `/api/auth/2fa/recover` | `{ code }` (backup code) | `200 { message, admin, backupCodesLeft }` + both cookies | Same as verify |
+| `GET` | `/api/auth/2fa/status` | none | `200 { enabled, backupCodesLeft }` | Needs a session |
+| `POST` | `/api/auth/2fa/setup` | none | `200 { secret, otpauthUrl, qr }` | Needs a session. `qr` is a PNG data URL. |
+| `POST` | `/api/auth/2fa/enable` | `{ code }` | `200 { message, backupCodes, admin }` | Needs a session. Backup codes are shown only here. |
+| `POST` | `/api/auth/2fa/backup-codes` | `{ code }` | `200 { message, backupCodes }` | Needs a session. The old codes stop working. |
+| `POST` | `/api/auth/2fa/disable` | `{ password, code }` | `200 { message, admin }` | Needs a session. `code` can be an app code or a backup code. |
 
-`admin` is `{ id, name, email, role, tokenVersion }`. Accounts created before names were added have `name: null`; the frontend shows their email instead.
+`admin` is `{ id, name, email, role, tokenVersion, twoFactorEnabled }`. Accounts created before names were added have `name: null`; the frontend shows their email instead.
 
 **Input rules:** emails are trimmed and lowercased, and passwords must be 8–128 characters (no composition rules, following NIST SP 800-63B).
 
@@ -62,6 +70,21 @@ Passwords are hashed with **argon2id** (19 MiB memory, 2 passes). Accounts from 
 2. The frontend's `/reset-password` page reads `token` from the URL and sends `POST /api/auth/reset-password` with `{ token, password }`.
 
 A link works once and lasts `PASSWORD_RESET_MINUTES` (default 30). Asking for a new link cancels the old one. A successful reset ends every session and refresh token for the account, lifts any lockout, and the person then logs in with the new password.
+
+### Two factor authentication
+
+2FA uses time based codes (TOTP, 6 digits every 30 seconds) from an app like Google Authenticator, Authy or Microsoft Authenticator.
+
+**Turning it on:** `POST /2fa/setup` returns a QR code to scan. `POST /2fa/enable` with a code from the app confirms it, and returns 10 backup codes. Each backup code works once. Only their SHA-256 hashes are stored, so they can't be shown again. Enabling ends any refresh token issued before it.
+
+**Logging in:** after a correct password, accounts with 2FA get `twoFactorRequired: true` and a pre-auth cookie instead of a session. `POST /2fa/verify` with the app code, or `POST /2fa/recover` with a backup code, then finishes the login.
+
+- A pre-auth lasts 5 minutes and allows 5 wrong codes.
+- Wrong codes count towards the same account lockout as wrong passwords, and a correct password alone doesn't reset that counter.
+- Each app code works once: the last accepted 30 second step is stored, and older or equal steps are refused. Codes from one step either side are accepted for clock drift.
+- The TOTP secret is stored encrypted with AES-256-GCM using `TWO_FACTOR_KEY`. Changing that key makes every enrolled authenticator stop working.
+
+**Lost phone:** log in with a backup code, then turn 2FA off and on again from the dashboard. A password reset does **not** turn 2FA off, so access to the inbox alone isn't enough to get in.
 
 ### Rate limits and lockout
 
@@ -74,6 +97,8 @@ Each endpoint has its own limiter with its own counters, so using up one doesn't
 | refresh | 60 per 15 min per IP |
 | forgot-password | 5 per 15 min per IP **and** 3 per hour per email address |
 | reset-password | 10 per 15 min per IP |
+| 2fa verify and recover | 10 per 15 min per IP |
+| 2fa setup, enable, disable, backup-codes | 20 per 15 min per account |
 
 **Account lockout** works separately from the IP limits, so spreading guesses across many IPs doesn't help. After `LOCKOUT_THRESHOLD` wrong passwords (default 5), the account refuses logins for `LOCKOUT_MINUTES` (default 15), even with the right password. The response is `429` with a `Retry-After` header. A successful login or a password reset clears the counter.
 
@@ -87,6 +112,7 @@ Migrations live in `backend/migrations/` as `NNN-description.js` files exporting
 | --- | --- |
 | `001-admin-security-fields` | Trims and lowercases emails (stops if that would merge two accounts), adds the lockout and login fields, and removes the unused `refreshToken` field. Passwords are left alone. |
 | `002-auth-token-collections` | Creates `refreshtokens` and `passwordresettokens` with unique and TTL indexes, so MongoDB deletes expired tokens on its own. |
+| `003-two-factor` | Adds the 2FA fields to admins and creates `preauthtokens` with a TTL index. |
 
 To add one, create the next numbered file and run `npm run migrate`.
 
@@ -101,4 +127,4 @@ The tests are Jest + Supertest, in `backend/tests/unit` (services and middleware
 
 ## Environment
 
-Copy `backend/.env.example` to `backend/.env`; every setting is described there. `SESSION_SECRET` is required in production, and `CLIENT_URL` lists the frontend addresses allowed to send the cookies.
+Copy `backend/.env.example` to `backend/.env`; every setting is described there. `SESSION_SECRET` and `TWO_FACTOR_KEY` are required in production, and `CLIENT_URL` lists the frontend addresses allowed to send the cookies.

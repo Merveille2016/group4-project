@@ -2,29 +2,22 @@ const express = require('express');
 const Admin = require('../models/Admin');
 const PasswordResetToken = require('../models/PasswordResetToken');
 const RefreshToken = require('../models/RefreshToken');
+const PreAuthToken = require('../models/PreAuthToken');
 const config = require('../config');
 const { protect } = require('../middleware/authMiddleware');
 const { createRateLimiters } = require('../middleware/rateLimiters');
 const { hashPassword, verifyPassword, spendVerifyTime } = require('../services/password');
 const { normalizeEmail, validatePassword, validateName } = require('../services/validation');
-const { lockRemainingMs, recordFailedLogin } = require('../services/lockout');
+const { lockRemainingMs, recordFailedLogin, sendLocked } = require('../services/lockout');
 const { RefreshError, rotateRefreshToken, revokeByToken, revokeAllForAdmin } = require('../services/refreshTokens');
 const { createResetToken, consumeResetToken, buildResetLink } = require('../services/passwordReset');
+const { startPreAuth } = require('../services/preAuth');
 const {
-  toAccount, requestMeta, startSession, endSession, setRefreshCookie, clearAuthCookies, establishLogin,
+  toAccount, requestMeta, startSession, endSession, setRefreshCookie, clearAuthCookies, completeLogin,
 } = require('../services/session');
 
 const INVALID_LOGIN = 'Invalid email or password';
 const BAD_RESET_LINK = 'This reset link is invalid or has expired. Please request a new one.';
-
-function sendLocked(res, remainingMs) {
-  const seconds = Math.ceil(remainingMs / 1000);
-  const minutes = Math.ceil(seconds / 60);
-  res.set('Retry-After', String(seconds));
-  return res.status(429).json({
-    message: `Account locked after too many failed attempts. Try again in ${minutes} minute${minutes === 1 ? '' : 's'}.`,
-  });
-}
 
 function createAuthRouter({ mailer, rateLimits = config.rateLimits }) {
   const router = express.Router();
@@ -83,17 +76,17 @@ function createAuthRouter({ mailer, rateLimits = config.rateLimits }) {
       return res.status(400).json({ message: INVALID_LOGIN });
     }
 
-    const update = {
-      $set: { failedLoginAttempts: 0, lockoutUntil: null, lastLoginAt: new Date() },
-      $inc: { tokenVersion: 1 },
-    };
     // Upgrade old hashes now that we have the plain password
-    if (needsRehash) update.$set.password = await hashPassword(password);
+    const extra = needsRehash ? { password: await hashPassword(password) } : {};
 
-    const updated = await Admin.findByIdAndUpdate(admin._id, update, { returnDocument: 'after' });
-    await revokeAllForAdmin(admin._id, 'new-login');
-    await establishLogin(req, res, updated);
+    if (admin.twoFactorEnabled) {
+      // No session yet. Failed attempts are only cleared once the code is right too.
+      if (needsRehash) await Admin.updateOne({ _id: admin._id }, { $set: extra });
+      await startPreAuth(res, admin);
+      return res.json({ message: 'Enter the code from your authenticator app.', twoFactorRequired: true });
+    }
 
+    const updated = await completeLogin(req, res, admin._id, extra);
     return res.json({ message: 'Login successful', admin: toAccount(updated) });
   });
 
@@ -179,6 +172,7 @@ function createAuthRouter({ mailer, rateLimits = config.rateLimits }) {
 
     await revokeAllForAdmin(admin._id, 'password-reset');
     await PasswordResetToken.deleteMany({ admin: admin._id, usedAt: null });
+    await PreAuthToken.deleteMany({ admin: admin._id });
 
     return res.json({ message: 'Your password has been reset. Please log in with your new password.' });
   });
@@ -197,6 +191,7 @@ function createAuthRouter({ mailer, rateLimits = config.rateLimits }) {
       admin.deleteOne(),
       RefreshToken.deleteMany({ admin: admin._id }),
       PasswordResetToken.deleteMany({ admin: admin._id }),
+      PreAuthToken.deleteMany({ admin: admin._id }),
     ]);
     await endSession(req);
     clearAuthCookies(res);

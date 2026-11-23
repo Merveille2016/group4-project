@@ -27,8 +27,17 @@ async function recordFailedLogin(adminId, { threshold, minutes } = config.lockou
   return { locked: false, attemptsLeft: threshold - updated.failedLoginAttempts };
 }
 
+function sendLocked(res, remainingMs) {
+  const seconds = Math.ceil(remainingMs / 1000);
+  const minutes = Math.ceil(seconds / 60);
+  res.set('Retry-After', String(seconds));
+  return res.status(429).json({
+    message: `Account locked after too many failed attempts. Try again in ${minutes} minute${minutes === 1 ? '' : 's'}.`,
+  });
+}
+
 function clearFailedLogins(adminId) {
   return Admin.updateOne({ _id: adminId }, { $set: { failedLoginAttempts: 0, lockoutUntil: null } });
 }
 
-module.exports = { lockRemainingMs, recordFailedLogin, clearFailedLogins };
+module.exports = { lockRemainingMs, recordFailedLogin, clearFailedLogins, sendLocked };
