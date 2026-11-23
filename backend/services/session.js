@@ -1,7 +1,6 @@
 const config = require('../config');
 const { issueRefreshToken } = require('./refreshTokens');
 
-// What the frontend gets back and what the session remembers about the person
 function toAccount(admin) {
   return {
     id: String(admin._id),
@@ -16,7 +15,7 @@ function requestMeta(req) {
   return { ip: req.ip, userAgent: req.get('user-agent') };
 }
 
-// A fresh session ID on every login stops session fixation
+// New session ID on every login to stop session fixation
 function startSession(req, admin) {
   return new Promise((resolve, reject) => {
     req.session.regenerate((err) => {
@@ -60,7 +59,6 @@ function clearAuthCookies(res) {
   });
 }
 
-// Session cookie + refresh cookie. `family` keeps a refreshed login in the same chain.
 async function establishLogin(req, res, admin, { family } = {}) {
   await startSession(req, admin);
   const { token } = await issueRefreshToken(admin, { family, ...requestMeta(req) });

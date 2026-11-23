@@ -1,18 +1,12 @@
 const Admin = require('../models/Admin');
 const config = require('../config');
 
-// Per-account lockout: after `threshold` wrong passwords the account refuses logins
-// for `minutes`, no matter which IP they come from. This complements the per-IP
-// rate limiter, which can't stop an attacker spreading guesses across many IPs.
-
 function lockRemainingMs(admin, now = Date.now()) {
   if (!admin.lockoutUntil) return 0;
   return Math.max(0, new Date(admin.lockoutUntil).getTime() - now);
 }
 
-// Counts the failure atomically ($inc) so parallel wrong guesses can't slip past the
-// threshold. Locking resets the counter, so the account gets a fresh set of attempts
-// once the lock expires.
+// $inc so parallel wrong guesses can't slip past the threshold
 async function recordFailedLogin(adminId, { threshold, minutes } = config.lockout) {
   const updated = await Admin.findByIdAndUpdate(
     adminId,

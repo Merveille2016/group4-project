@@ -10,7 +10,6 @@ const config = require('../config');
 
 const DEFAULT_PASSWORD = 'correct-horse-battery';
 
-// Each test file works in its own database, so files never see each other's data
 async function connectTestDb() {
   if (!process.env.TEST_MONGO_URI) throw new Error('TEST_MONGO_URI not set; is tests/globalSetup.js running?');
   const dbName = `uniguide_test_${crypto.randomBytes(4).toString('hex')}`;
@@ -18,7 +17,6 @@ async function connectTestDb() {
   await Promise.all([Admin.init(), RefreshToken.init(), PasswordResetToken.init()]);
 }
 
-// Refuses to touch anything but the throwaway database this file created
 function assertTestDb() {
   const name = mongoose.connection.db?.databaseName || '';
   if (!name.startsWith('uniguide_test_')) throw new Error(`Refusing to modify non-test database "${name}"`);
@@ -30,8 +28,7 @@ async function clearTestDb() {
   await Promise.all(collections.map((c) => c.deleteMany({})));
 }
 
-// Drops each collection rather than the database: Atlas users with plain readWrite
-// rights may not drop databases, and MongoDB removes a database once it's empty anyway
+// Atlas users with plain readWrite can't drop databases
 async function dropTestCollections() {
   assertTestDb();
   const collections = await mongoose.connection.db.collections();
@@ -43,7 +40,6 @@ async function disconnectTestDb() {
   await mongoose.disconnect();
 }
 
-// Fresh app (and fresh rate limit counters) with a fake mailer that records reset emails
 function buildApp({ rateLimits } = {}) {
   const mailer = { sendPasswordReset: jest.fn().mockResolvedValue() };
   const app = createApp({ mailer, rateLimits });
@@ -59,7 +55,6 @@ async function createAdmin({ password = DEFAULT_PASSWORD, ...fields } = {}) {
   });
 }
 
-// Value of a cookie from a response's Set-Cookie header, or undefined
 function getCookie(res, name) {
   const header = (res.headers['set-cookie'] || []).find((c) => c.startsWith(`${name}=`));
   if (!header) return undefined;

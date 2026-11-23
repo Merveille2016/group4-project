@@ -7,11 +7,7 @@ const { protect } = require('./middleware/authMiddleware');
 const { createAuthRouter } = require('./routes/auth');
 const { createMailer } = require('./services/mailer');
 
-// Builds the Express app without connecting to MongoDB or listening, so tests can
-// create a fresh one each time.
-//   sessionStore: where sessions live (MongoStore in server.js; in-memory if omitted)
-//   mailer:       { sendPasswordReset } (tests pass a fake)
-//   rateLimits:   per-endpoint overrides, e.g. { login: { windowMinutes: 1, max: 2 } }
+// Builds the app without connecting to MongoDB, so tests can make a fresh one
 function createApp({ sessionStore, mailer = createMailer(), rateLimits = {} } = {}) {
   const app = express();
 

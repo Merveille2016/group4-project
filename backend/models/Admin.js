@@ -3,8 +3,7 @@ const mongoose = require('mongoose');
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const adminSchema = new mongoose.Schema({
-  // Required by the register route, not here: accounts created before names
-  // existed have none, and they still need to be able to log in.
+  // Not required here because older accounts have no name
   name: { type: String, trim: true, maxlength: 100 },
   email: {
     type: String,
@@ -14,13 +13,11 @@ const adminSchema = new mongoose.Schema({
     trim: true,
     match: EMAIL_PATTERN,
   },
-  // argon2id hash. Older accounts may still hold a bcrypt hash until their next login.
-  // Never returned by queries unless asked for with .select('+password').
+  // argon2id, or bcrypt for old accounts until their next login
   password: { type: String, required: true, select: false },
   role: { type: String, enum: ['admin'], default: 'admin' },
 
-  // Bumped on every login, logout and password reset. Sessions and refresh tokens
-  // remember the version they were issued under and stop working once it changes.
+  // Bumped on login, logout and password reset to end older sessions
   tokenVersion: { type: Number, default: 0 },
 
   failedLoginAttempts: { type: Number, default: 0 },

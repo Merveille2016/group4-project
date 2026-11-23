@@ -1,11 +1,4 @@
-// Brings existing admin documents in line with models/Admin.js:
-//  - emails trimmed and lowercased (login now looks them up that way)
-//  - login security fields present on every account
-//  - the unused `refreshToken` field removed (refresh tokens have their own collection now)
-//
-// Passwords are NOT touched: bcrypt hashes can't be converted without the plain password,
-// so they are upgraded to argon2 the next time each person logs in.
-
+// bcrypt passwords are left alone and upgraded on the next login
 const FIELD_DEFAULTS = {
   tokenVersion: 0,
   failedLoginAttempts: 0,
@@ -21,7 +14,7 @@ module.exports = {
     const admins = db.collection('admins');
     const all = await admins.find({}, { projection: { email: 1 } }).toArray();
 
-    // Lowercasing could turn two accounts into the same email; refuse rather than guess
+    // Lowercasing could merge two accounts into one email
     const owners = new Map();
     const collisions = new Set();
     for (const admin of all) {
@@ -48,8 +41,7 @@ module.exports = {
     await admins.updateMany({ refreshToken: { $exists: true } }, { $unset: { refreshToken: '' } });
   },
 
-  // Email normalisation can't be undone (the original casing isn't kept).
-  // tokenVersion stays: it existed before this migration.
+  // Lowercased emails can't be undone
   async down(db) {
     await db.collection('admins').updateMany({}, {
       $unset: { failedLoginAttempts: '', lockoutUntil: '', passwordChangedAt: '', lastLoginAt: '' },

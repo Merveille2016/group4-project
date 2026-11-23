@@ -1,6 +1,3 @@
-// Every auth-related setting in one place, read from the environment with safe defaults.
-// Tests override pieces of this through createApp({ config }).
-
 const num = (value, fallback) => {
   const n = Number(value);
   return Number.isFinite(n) && n > 0 ? n : fallback;
@@ -19,7 +16,6 @@ if (isProduction && !process.env.SESSION_SECRET) {
 module.exports = {
   isProduction,
   clientUrls,
-  // Where the password reset link in the email points (the frontend's reset page)
   appUrl: process.env.APP_URL || clientUrls[0],
   trustProxy: process.env.TRUST_PROXY || false,
 
@@ -31,11 +27,9 @@ module.exports = {
 
   refreshToken: {
     cookieName: 'uniguide.rt',
-    // Only sent to the auth routes, never to the rest of the API
     cookiePath: '/api/auth',
     days: num(process.env.REFRESH_TOKEN_DAYS, 7),
-    // Two tabs refreshing at once both present the same token; the slower one
-    // gets a 401 instead of being treated as a stolen token inside this window
+    // Two tabs refreshing at once send the same token, so allow a short overlap
     reuseGraceSeconds: 10,
   },
 
@@ -53,7 +47,6 @@ module.exports = {
     minutes: num(process.env.LOCKOUT_MINUTES, 15),
   },
 
-  // Each auth endpoint gets its own limiter so one can't use up another's budget
   rateLimits: {
     login: { windowMinutes: 15, max: 10 },
     register: { windowMinutes: 60, max: 5 },
