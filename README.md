@@ -125,6 +125,15 @@ npm test
 
 The tests are Jest + Supertest, in `backend/tests/unit` (services and middleware on their own) and `backend/tests/api` (each endpoint end to end). By default they start a throwaway in-memory MongoDB. The first run downloads it, which takes a while. To use another server instead, set `TEST_MONGO_URI`. Each test file only ever creates and drops its own `uniguide_test_*` database.
 
+### Browser tests
+
+```bash
+cd "landing page"
+npm run test:e2e
+```
+
+Playwright drives the real frontend in Chrome against the real backend on an in-memory MongoDB (`landing page/e2e/server.js`). They cover password reset, 2FA enrolment, logging in with a code, backup code recovery, turning 2FA off, refresh after the session cookie is gone, and the route guards. Google Chrome must be installed.
+
 ## Environment
 
 Copy `backend/.env.example` to `backend/.env`; every setting is described there. `SESSION_SECRET` and `TWO_FACTOR_KEY` are required in production, and `CLIENT_URL` lists the frontend addresses allowed to send the cookies.
