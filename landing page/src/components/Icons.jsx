@@ -29,3 +29,11 @@ export function EyeIcon() {
 export function EyeOffIcon() {
   return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.6 5.1A9.7 9.7 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-2.6 3.5M6.6 6.6C3.8 8.4 2 12 2 12s3.6 7 10 7c1.8 0 3.4-.5 4.7-1.3M9.9 9.9a3 3 0 0 0 4.2 4.2M3 3l18 18" /></svg>
 }
+
+export function ShieldIcon() {
+  return <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 4 6 8v7c0 6.5 4.2 11.2 10 13 5.8-1.8 10-6.5 10-13V8L16 4Z" /><path d="m11.5 16 3 3 6-6" /></svg>
+}
+
+export function KeyIcon() {
+  return <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="11" cy="16" r="5" /><path d="M16 16h12M24 16v4M28 16v3" /></svg>
+}

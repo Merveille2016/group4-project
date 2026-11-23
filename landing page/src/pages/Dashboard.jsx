@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { AuthError, dashboardRequest } from '../api'
 import DeleteAccount from '../components/DeleteAccount'
+import TwoFactorSettings from '../components/TwoFactorSettings'
 import universities from '../data/universities'
 import programmes from '../data/programmes'
 import './Dashboard.css'
@@ -13,7 +14,9 @@ const totalCourses = universities.reduce((n, u) => n + u.departments.reduce((m, 
 
 function Dashboard() {
   const { user, logout } = useAuth()
+  const location = useLocation()
   const [status, setStatus] = useState({ loading: true, error: '', message: '' })
+  const backupCodesLeft = location.state?.backupCodesLeft
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' })
@@ -47,6 +50,13 @@ function Dashboard() {
       </section>
 
       <div className="dashboard-body">
+        {backupCodesLeft !== undefined && (
+          <p className="dashboard-notice" role="status">
+            You signed in with a backup code. You have {backupCodesLeft} left.
+            {backupCodesLeft < 3 && ' Create new ones below, or turn two factor authentication off and on again if you lost your phone.'}
+          </p>
+        )}
+
         <div className="dashboard-grid">
           <section className="panel">
             <h2>Your account</h2>
@@ -113,6 +123,8 @@ function Dashboard() {
             </table>
           </div>
         </section>
+
+        <TwoFactorSettings />
 
         <DeleteAccount />
       </div>

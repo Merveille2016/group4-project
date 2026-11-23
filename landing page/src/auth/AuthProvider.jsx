@@ -2,7 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AuthContext } from './AuthContext'
 import { IDLE_MINUTES } from './idle'
-import { AuthError, deleteAccountRequest, loginRequest, logoutRequest, meRequest, registerRequest } from '../api'
+import {
+  AuthError, deleteAccountRequest, loginRequest, logoutRequest, meRequest, recoverRequest, registerRequest, verifyCodeRequest,
+} from '../api'
 
 const IDLE_LIMIT = IDLE_MINUTES * 60 * 1000
 const PING_EVERY = Math.min(60 * 1000, IDLE_LIMIT / 3)
@@ -47,19 +49,49 @@ function AuthProvider({ children }) {
     clearOldTokenStorage()
     let cancelled = false
 
-    meRequest()
+    // Coming back after the idle limit should not be logged in again by the refresh cookie
+    const lastSeen = readStorage(ACTIVITY_KEY)
+    const wasIdle = lastSeen > 0 && Date.now() - lastSeen >= IDLE_LIMIT
+
+    meRequest({ refresh: !wasIdle })
       .then((data) => { if (!cancelled) setState({ user: data.admin, checking: false, endedBy: null }) })
-      .catch(() => { if (!cancelled) setState({ user: null, checking: false, endedBy: null }) })
+      .catch(() => {
+        if (wasIdle) logoutRequest().catch(() => {})
+        if (!cancelled) setState({ user: null, checking: false, endedBy: null })
+      })
 
     return () => { cancelled = true }
   }, [])
 
-  async function login(email, password) {
-    const data = await loginRequest(email, password)
+  function startLogin(admin) {
     lastActive.current = Date.now()
     writeStorage(ACTIVITY_KEY, lastActive.current)
-    setState({ user: data.admin, checking: false, endedBy: null })
+    setState({ user: admin, checking: false, endedBy: null })
   }
+
+  // Returns { twoFactorRequired: true } when the account still needs its code
+  async function login(email, password) {
+    const data = await loginRequest(email, password)
+    if (data.twoFactorRequired) return { twoFactorRequired: true }
+    startLogin(data.admin)
+    return {}
+  }
+
+  async function verifyCode(code) {
+    const data = await verifyCodeRequest(code)
+    startLogin(data.admin)
+  }
+
+  async function recover(code) {
+    const data = await recoverRequest(code)
+    startLogin(data.admin)
+    return data.backupCodesLeft
+  }
+
+  // After 2FA is turned on or off the backend sends the updated account back
+  const updateUser = useCallback((admin) => {
+    setState((current) => ({ ...current, user: admin }))
+  }, [])
 
   // Only creates the account; the person logs in themselves afterwards
   async function signup(name, email, password) {
@@ -139,7 +171,7 @@ function AuthProvider({ children }) {
   }, [loggedIn, logout, navigate])
 
   return (
-    <AuthContext.Provider value={{ ...state, login, signup, logout, deleteAccount }}>
+    <AuthContext.Provider value={{ ...state, login, verifyCode, recover, updateUser, signup, logout, deleteAccount }}>
       {children}
     </AuthContext.Provider>
   )

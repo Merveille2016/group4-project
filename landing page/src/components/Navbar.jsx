@@ -28,7 +28,7 @@ function Navbar() {
 
   // Don't send people back to the auth pages after they sign in; when switching
   // between login and signup, keep wherever they were originally headed
-  const onAuthPage = pathname === '/login' || pathname === '/signup'
+  const onAuthPage = ['/login', '/signup', '/forgot-password', '/reset-password'].includes(pathname)
   const loginState = onAuthPage ? routeState : { from: pathname + search }
   const showLogin = pathname !== '/login'
   const showSignup = pathname !== '/signup'
