@@ -63,10 +63,10 @@ function AuthProvider({ children }) {
     return () => { cancelled = true }
   }, [])
 
-  function startLogin(admin) {
+  function startLogin(admin, extra = {}) {
     lastActive.current = Date.now()
     writeStorage(ACTIVITY_KEY, lastActive.current)
-    setState({ user: admin, checking: false, endedBy: null })
+    setState({ user: admin, checking: false, endedBy: null, ...extra })
   }
 
   // Returns { twoFactorRequired: true } when the account still needs its code
@@ -84,9 +84,13 @@ function AuthProvider({ children }) {
 
   async function recover(code) {
     const data = await recoverRequest(code)
-    startLogin(data.admin)
-    return data.backupCodesLeft
+    // Kept until logout so the dashboard can say how many backup codes are left
+    startLogin(data.admin, { backupCodesLeft: data.backupCodesLeft })
   }
+
+  const clearBackupNotice = useCallback(() => {
+    setState((current) => ({ ...current, backupCodesLeft: undefined }))
+  }, [])
 
   // After 2FA is turned on or off the backend sends the updated account back
   const updateUser = useCallback((admin) => {
@@ -171,7 +175,7 @@ function AuthProvider({ children }) {
   }, [loggedIn, logout, navigate])
 
   return (
-    <AuthContext.Provider value={{ ...state, login, verifyCode, recover, updateUser, signup, logout, deleteAccount }}>
+    <AuthContext.Provider value={{ ...state, login, verifyCode, recover, updateUser, clearBackupNotice, signup, logout, deleteAccount }}>
       {children}
     </AuthContext.Provider>
   )

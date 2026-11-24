@@ -210,6 +210,11 @@ a.submit-button {
   text-align: center;
 }
 
+.field input.code-input::placeholder {
+  font-size: 15px;
+  letter-spacing: normal;
+}
+
 .form-hint {
   margin: 0 0 16px;
   color: var(--muted);

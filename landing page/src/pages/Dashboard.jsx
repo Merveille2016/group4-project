@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { AuthError, dashboardRequest } from '../api'
 import DeleteAccount from '../components/DeleteAccount'
@@ -13,10 +13,8 @@ const totalDepartments = universities.reduce((n, u) => n + u.departments.length,
 const totalCourses = universities.reduce((n, u) => n + u.departments.reduce((m, d) => m + d.courses.length, 0), 0)
 
 function Dashboard() {
-  const { user, logout } = useAuth()
-  const location = useLocation()
+  const { user, logout, backupCodesLeft } = useAuth()
   const [status, setStatus] = useState({ loading: true, error: '', message: '' })
-  const backupCodesLeft = location.state?.backupCodesLeft
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' })

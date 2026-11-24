@@ -44,16 +44,16 @@ function BackupCodes({ codes, onDone }) {
   )
 }
 
-function CodeField({ id, label, value, onChange, disabled }) {
+function CodeField({ id, label, value, onChange, disabled, allowBackup = false }) {
   return (
     <>
       <label htmlFor={id}>{label}</label>
       <input
         id={id}
         type="text"
-        inputMode="numeric"
+        inputMode={allowBackup ? 'text' : 'numeric'}
         autoComplete="one-time-code"
-        placeholder="123456"
+        placeholder={allowBackup ? '123456 or xxxxx-xxxxx' : '123456'}
         maxLength={11}
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -65,7 +65,7 @@ function CodeField({ id, label, value, onChange, disabled }) {
 }
 
 function TwoFactorSettings() {
-  const { updateUser, logout } = useAuth()
+  const { updateUser, logout, clearBackupNotice } = useAuth()
   const [status, setStatus] = useState(null)
   // null, 'setup', 'codes', 'regenerate' or 'disable'
   const [mode, setMode] = useState(null)
@@ -131,6 +131,7 @@ function TwoFactorSettings() {
       const data = await newBackupCodesRequest(code)
       setCodes(data.backupCodes)
       setStatus({ enabled: true, backupCodesLeft: data.backupCodes.length })
+      clearBackupNotice()
       reset('codes')
     })
   }
@@ -141,6 +142,7 @@ function TwoFactorSettings() {
       const data = await disableTwoFactorRequest(password, code)
       updateUser(data.admin)
       setStatus({ enabled: false, backupCodesLeft: 0 })
+      clearBackupNotice()
       reset()
     })
   }
@@ -209,7 +211,7 @@ function TwoFactorSettings() {
             disabled={loading}
             required
           />
-          <CodeField id="disable-code" label="Code from your app, or a backup code" value={code} onChange={setCode} disabled={loading} />
+          <CodeField id="disable-code" label="Code from your app, or a backup code" value={code} onChange={setCode} disabled={loading} allowBackup />
           {error && <p className="delete-error" role="alert">{error}</p>}
           <div className="security-actions">
             <button type="button" className="cancel-button" onClick={() => reset()} disabled={loading}>Cancel</button>

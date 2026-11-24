@@ -71,13 +71,14 @@ function Login() {
     setError('')
     setLoading(true)
     try {
-      if (step === 'backup') {
-        const left = await recover(code)
-        navigate('/dashboard', { replace: true, state: { backupCodesLeft: left } })
+      // Six digits is an app code, anything else is treated as a backup code
+      const appCode = /^\d{6}$/.test(code.replace(/\s/g, ''))
+      if (step === 'backup' || !appCode) {
+        await recover(code)
       } else {
         await verifyCode(code)
-        navigate(from, { replace: true })
       }
+      navigate(from, { replace: true })
     } catch (err) {
       setLoading(false)
       // The pre-auth timed out or ran out of attempts, so the password is needed again
@@ -96,7 +97,7 @@ function Login() {
           <p className="form-intro">
             {backup
               ? 'Enter one of the backup codes you saved when you turned on two factor authentication.'
-              : 'Enter the 6 digit code from your authenticator app.'}
+              : 'Enter the 6 digit code from your authenticator app, or one of your backup codes.'}
           </p>
 
           {error && <p className="form-error" role="alert">{error}</p>}
@@ -108,19 +109,18 @@ function Login() {
                 id="code"
                 className={backup ? undefined : 'code-input'}
                 type="text"
-                inputMode={backup ? 'text' : 'numeric'}
                 autoComplete="one-time-code"
-                placeholder={backup ? 'xxxxx-xxxxx' : '123456'}
-                maxLength={backup ? 11 : 6}
+                placeholder={backup ? 'xxxxx-xxxxx' : '123456 or xxxxx-xxxxx'}
+                maxLength={11}
                 value={code}
-                onChange={(e) => setCode(backup ? e.target.value : e.target.value.replace(/\D/g, ''))}
+                onChange={(e) => setCode(e.target.value)}
                 disabled={loading}
                 autoFocus
                 required
               />
             </div>
 
-            <button className="submit-button" type="submit" disabled={loading || (!backup && code.length !== 6)} aria-busy={loading}>
+            <button className="submit-button" type="submit" disabled={loading || !code.trim()} aria-busy={loading}>
               {loading ? <><span className="spinner" aria-hidden="true" /> Checking...</> : 'Verify'}
             </button>
           </form>
