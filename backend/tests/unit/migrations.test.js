@@ -23,13 +23,14 @@ describe('migration runner', () => {
     expect(loadMigrations().map((m) => m.name)).toEqual([
       '001-admin-security-fields',
       '002-auth-token-collections',
+      '003-two-factor',
     ]);
   });
 
   test('applies pending migrations once and records them', async () => {
-    expect(await pendingMigrations(db)).toHaveLength(2);
+    expect(await pendingMigrations(db)).toHaveLength(3);
 
-    expect(await migrateUp(db)).toEqual(['001-admin-security-fields', '002-auth-token-collections']);
+    expect(await migrateUp(db)).toEqual(['001-admin-security-fields', '002-auth-token-collections', '003-two-factor']);
     expect(await pendingMigrations(db)).toEqual([]);
     expect(await migrateUp(db)).toEqual([]);
 
@@ -39,8 +40,9 @@ describe('migration runner', () => {
 
   test('migrateDown reverts the most recent migration only', async () => {
     await migrateUp(db);
+    expect(await migrateDown(db)).toBe('003-two-factor');
+    expect(await pendingMigrations(db)).toEqual(['003-two-factor']);
     expect(await migrateDown(db)).toBe('002-auth-token-collections');
-    expect(await pendingMigrations(db)).toEqual(['002-auth-token-collections']);
     expect(await migrateDown(db)).toBe('001-admin-security-fields');
     expect(await migrateDown(db)).toBeNull();
   });
@@ -117,8 +119,41 @@ describe('002-auth-token-collections', () => {
   test('down drops the token collections', async () => {
     await migrateUp(db);
     await migrateDown(db);
+    await migrateDown(db);
     const names = (await db.listCollections().toArray()).map((c) => c.name);
     expect(names).not.toContain('refreshtokens');
     expect(names).not.toContain('passwordresettokens');
+  });
+});
+
+describe('003-two-factor', () => {
+  test('adds two factor fields without touching accounts that already have them', async () => {
+    await db.collection('admins').insertMany([
+      { email: 'old@uniguide.cm', password: 'x' },
+      { email: 'on@uniguide.cm', password: 'x', twoFactorEnabled: true, twoFactorSecret: 'enc' },
+    ]);
+    await migrateUp(db);
+
+    const old = await db.collection('admins').findOne({ email: 'old@uniguide.cm' });
+    expect(old).toMatchObject({ twoFactorEnabled: false, twoFactorSecret: null, lastTotpStep: null, backupCodes: [] });
+    const on = await db.collection('admins').findOne({ email: 'on@uniguide.cm' });
+    expect(on).toMatchObject({ twoFactorEnabled: true, twoFactorSecret: 'enc' });
+
+    const keys = (await db.collection('preauthtokens').indexes()).map((i) => ({ key: i.key, ttl: i.expireAfterSeconds }));
+    expect(keys).toEqual(expect.arrayContaining([
+      { key: { tokenHash: 1 }, ttl: undefined },
+      { key: { expiresAt: 1 }, ttl: 0 },
+    ]));
+  });
+
+  test('down removes the fields and the pre-auth collection', async () => {
+    await db.collection('admins').insertOne({ email: 'old@uniguide.cm', password: 'x' });
+    await migrateUp(db);
+    await migrateDown(db);
+
+    const admin = await db.collection('admins').findOne({ email: 'old@uniguide.cm' });
+    expect(admin).not.toHaveProperty('twoFactorEnabled');
+    const names = (await db.listCollections().toArray()).map((c) => c.name);
+    expect(names).not.toContain('preauthtokens');
   });
 });

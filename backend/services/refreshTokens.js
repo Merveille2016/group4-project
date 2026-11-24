@@ -5,7 +5,6 @@ const config = require('../config');
 const { randomToken, sha256 } = require('./tokenUtils');
 
 class RefreshError extends Error {
-  // code: missing | invalid | expired | revoked | reused | raced | stale
   constructor(code, message = 'Please log in again.') {
     super(message);
     this.code = code;
@@ -40,7 +39,6 @@ function revokeAllForAdmin(adminId, reason) {
   );
 }
 
-// Ends the chain this token belongs to (one device). Returns the token's record, or null.
 async function revokeByToken(token, reason) {
   if (typeof token !== 'string' || !token) return null;
   const doc = await RefreshToken.findOne({ tokenHash: sha256(token) });
@@ -48,14 +46,13 @@ async function revokeByToken(token, reason) {
   return doc;
 }
 
-// Swaps a valid refresh token for a new one. Returns { token, admin }, or throws RefreshError.
 async function rotateRefreshToken(token, { ip, userAgent } = {}) {
   if (typeof token !== 'string' || !token) throw new RefreshError('missing');
 
   const tokenHash = sha256(token);
   const now = new Date();
 
-  // Claim the token atomically: if two requests race, only one gets past this
+  // Atomic so only one of two racing requests gets through
   const current = await RefreshToken.findOneAndUpdate(
     { tokenHash, revokedAt: null, expiresAt: { $gt: now } },
     { $set: { revokedAt: now, revokeReason: 'rotated' } },
@@ -69,18 +66,17 @@ async function rotateRefreshToken(token, { ip, userAgent } = {}) {
 
     const ageMs = now - existing.revokedAt;
     if (ageMs < config.refreshToken.reuseGraceSeconds * 1000) {
-      // Most likely two tabs refreshing at the same moment; the other one won
+      // Probably two tabs refreshing at once
       throw new RefreshError('raced');
     }
 
-    // An already rotated token came back: someone kept a copy. Kill the whole chain.
+    // An old token came back, so someone kept a copy
     await revokeFamily(existing.family, 'reuse-detected');
     throw new RefreshError('reused');
   }
 
   const admin = await Admin.findById(current.admin);
   if (!admin || admin.tokenVersion !== current.tokenVersion) {
-    // Account deleted, or logged in/out/reset elsewhere since this token was issued
     await revokeFamily(current.family, 'stale');
     throw new RefreshError('stale');
   }

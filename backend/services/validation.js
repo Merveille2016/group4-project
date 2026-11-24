@@ -1,8 +1,7 @@
 const config = require('../config');
 const Admin = require('../models/Admin');
 
-// Returns the trimmed, lowercased email, or null if it isn't a usable email.
-// Rejecting non-strings here also stops query injection like { "email": { "$ne": "" } }.
+// Rejecting non strings also stops query injection like { "$ne": "" }
 function normalizeEmail(value) {
   if (typeof value !== 'string') return null;
   const email = value.trim().toLowerCase();
@@ -10,8 +9,7 @@ function normalizeEmail(value) {
   return Admin.EMAIL_PATTERN.test(email) ? email : null;
 }
 
-// Returns an error message, or null if the password is acceptable.
-// Length only, no "must contain a symbol" rules, following NIST SP 800-63B.
+// Length only, following NIST SP 800-63B
 function validatePassword(value) {
   const { minLength, maxLength } = config.password;
   if (typeof value !== 'string' || value.length === 0) return 'Password is required';

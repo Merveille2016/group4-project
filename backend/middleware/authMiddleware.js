@@ -1,9 +1,6 @@
 const Admin = require('../models/Admin');
 
-// Only lets the request through if the session belongs to an admin whose account still
-// exists and whose tokenVersion hasn't moved on. tokenVersion changes on every login,
-// logout and password reset, so an old session (another device, a stolen cookie)
-// stops working on its next request.
+// Old sessions stop working once tokenVersion has moved on
 const protect = async (req, res, next) => {
   const account = req.session?.admin;
   if (!account) {

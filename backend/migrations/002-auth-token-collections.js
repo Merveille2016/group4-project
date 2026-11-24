@@ -1,6 +1,4 @@
-// Creates the collections and indexes for refresh tokens and password reset tokens.
-// The TTL indexes make MongoDB delete tokens on its own once they expire.
-// Index specs match the Mongoose models, so Mongoose's own index sync sees nothing to change.
+// Indexes match the Mongoose models
 
 async function createCollectionIfMissing(db, name) {
   const existing = await db.listCollections({ name }, { nameOnly: true }).toArray();

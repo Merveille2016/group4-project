@@ -26,7 +26,7 @@ describe('GET /api/auth/me', () => {
     const { agent, admin } = await loggedInAgent();
     const res = await agent.get('/api/auth/me').expect(200);
     expect(res.body).toEqual({
-      admin: { id: String(admin._id), name: 'Test Admin', email: 'admin@uniguide.cm', role: 'admin', tokenVersion: 1 },
+      admin: { id: String(admin._id), name: 'Test Admin', email: 'admin@uniguide.cm', role: 'admin', tokenVersion: 1, twoFactorEnabled: false },
     });
   });
 

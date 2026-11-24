@@ -1,6 +1,3 @@
-// Usage: npm run migrate            apply pending migrations
-//        npm run migrate:status     list migrations and whether they're applied
-//        npm run migrate:down       revert the most recent migration
 require('dotenv').config();
 
 const { MongoClient } = require('mongoose').mongo;

@@ -1,8 +1,7 @@
 const nodemailer = require('nodemailer');
 const defaultConfig = require('../config');
 
-// Sends real email when SMTP_HOST is set. Without it (local development) the reset
-// link is printed to the server console so the flow can still be tried end to end.
+// Without SMTP_HOST the link is printed to the console instead
 function createMailer(config = defaultConfig) {
   const { smtp } = config;
   const transport = smtp.host

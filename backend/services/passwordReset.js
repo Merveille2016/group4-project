@@ -2,8 +2,7 @@ const PasswordResetToken = require('../models/PasswordResetToken');
 const config = require('../config');
 const { randomToken, sha256 } = require('./tokenUtils');
 
-// Creates a reset token and returns the raw value for the emailed link.
-// Any earlier unused link for this account stops working.
+// Any earlier unused link stops working
 async function createResetToken(admin, { ip } = {}) {
   await PasswordResetToken.deleteMany({ admin: admin._id, usedAt: null });
 
@@ -17,8 +16,7 @@ async function createResetToken(admin, { ip } = {}) {
   return token;
 }
 
-// Marks the token used and returns its record, or null if it's unknown, used or expired.
-// Done in one atomic update so the same link can't be used twice in parallel.
+// Atomic so the same link can't be used twice
 async function consumeResetToken(token) {
   if (typeof token !== 'string' || token.length < 20 || token.length > 200) return null;
   const now = new Date();

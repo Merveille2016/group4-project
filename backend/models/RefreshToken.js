@@ -1,11 +1,6 @@
 const mongoose = require('mongoose');
 
-// One document per refresh token ever issued. Only the SHA-256 of the token is stored,
-// so a database leak doesn't hand out working tokens.
-//
-// Tokens rotate: each refresh revokes the presented token and issues a new one in the
-// same `family`. If a revoked token is presented again, someone kept a copy, so the
-// whole family is revoked.
+// Only the SHA-256 of each token is stored. A reused old token revokes its whole family.
 const refreshTokenSchema = new mongoose.Schema({
   admin: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin', required: true, index: true },
   tokenHash: { type: String, required: true, unique: true },
@@ -19,7 +14,6 @@ const refreshTokenSchema = new mongoose.Schema({
   userAgent: String,
 }, { timestamps: true });
 
-// MongoDB deletes the document once it expires
 refreshTokenSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 module.exports = mongoose.model('RefreshToken', refreshTokenSchema);

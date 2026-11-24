@@ -24,7 +24,7 @@ describe('POST /api/auth/login', () => {
 
     expect(res.body).toEqual({
       message: 'Login successful',
-      admin: { id: String(admin._id), name: 'Test Admin', email: 'admin@uniguide.cm', role: 'admin', tokenVersion: 1 },
+      admin: { id: String(admin._id), name: 'Test Admin', email: 'admin@uniguide.cm', role: 'admin', tokenVersion: 1, twoFactorEnabled: false },
     });
   });
 

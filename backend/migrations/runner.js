@@ -1,10 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-// A small migration runner. Each migration is a file named NNN-description.js in this
-// folder that exports { description, up(db), down(db) }, where db is the native MongoDB
-// driver database. Applied migrations are recorded in the `migrations` collection, so
-// each one runs exactly once per database.
+// Each migration is NNN-name.js exporting { description, up(db), down(db) }
 
 const COLLECTION = 'migrations';
 const FILE_PATTERN = /^\d{3}-[\w-]+\.js$/;
@@ -18,7 +15,6 @@ function loadMigrations(dir = __dirname) {
 
 async function appliedRecords(db) {
   const records = db.collection(COLLECTION);
-  // Stops two processes from recording the same migration twice
   await records.createIndex({ name: 1 }, { unique: true });
   return records.find().sort({ name: 1 }).toArray();
 }
@@ -37,8 +33,6 @@ async function status(db, { dir } = {}) {
   }));
 }
 
-// Applies every pending migration in order and returns their names.
-// Stops at the first failure; the failed one is not recorded, so it runs again next time.
 async function migrateUp(db, { dir, log = () => {} } = {}) {
   const applied = new Set((await appliedRecords(db)).map((r) => r.name));
   const done = [];
@@ -52,7 +46,6 @@ async function migrateUp(db, { dir, log = () => {} } = {}) {
   return done;
 }
 
-// Reverts the most recently applied migration and returns its name (or null if none).
 async function migrateDown(db, { dir, log = () => {} } = {}) {
   const records = await appliedRecords(db);
   const last = records[records.length - 1];

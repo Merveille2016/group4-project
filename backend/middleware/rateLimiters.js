@@ -10,17 +10,16 @@ function makeLimiter({ windowMinutes, max }, { message, keyGenerator, skipSucces
     legacyHeaders: false,
     skipSuccessfulRequests,
     keyGenerator,
-    // Both frontends read `message` from error responses
     handler: (req, res) => res.status(429).json({ message }),
   });
 }
 
 const byIp = (req) => ipKeyGenerator(req.ip);
 
-// Each endpoint gets its own limiter (and its own counters), created per app instance
-function createRateLimiters(limits = defaultConfig.rateLimits) {
+function createRateLimiters(overrides = {}) {
+  const limits = { ...defaultConfig.rateLimits, ...overrides };
   return {
-    // Only failed attempts count, so a person who logs in fine is never blocked
+    // Only failed attempts count
     login: makeLimiter(limits.login, {
       message: `Too many failed login attempts from this network. Try again in ${limits.login.windowMinutes} minutes.`,
       keyGenerator: byIp,
@@ -37,8 +36,7 @@ function createRateLimiters(limits = defaultConfig.rateLimits) {
       keyGenerator: byIp,
     }),
 
-    // Two limits: one per network, and one per email address so a single inbox
-    // can't be flooded with reset emails from many networks
+    // Also per email so one inbox can't be flooded from many networks
     forgotPasswordByIp: makeLimiter(limits.forgotPassword, {
       message: 'Too many password reset requests. Please try again later.',
       keyGenerator: byIp,
@@ -51,6 +49,17 @@ function createRateLimiters(limits = defaultConfig.rateLimits) {
     resetPassword: makeLimiter(limits.resetPassword, {
       message: 'Too many password reset attempts. Please try again later.',
       keyGenerator: byIp,
+    }),
+
+    twoFactorVerify: makeLimiter(limits.twoFactorVerify, {
+      message: 'Too many code attempts from this network. Please try again later.',
+      keyGenerator: byIp,
+    }),
+
+    // Keyed by account, since these routes need a session
+    twoFactorManage: makeLimiter(limits.twoFactorManage, {
+      message: 'Too many two factor requests. Please try again later.',
+      keyGenerator: (req) => `admin:${req.user?.id || byIp(req)}`,
     }),
   };
 }

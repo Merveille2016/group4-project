@@ -6,6 +6,8 @@ import Home from './pages/Home'
 import University from './pages/University'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 import Dashboard from './pages/Dashboard'
 import RequireAuth from './auth/RequireAuth'
 import './App.css'
@@ -20,6 +22,8 @@ function App() {
           <Route path="/universities/:slug" element={<University />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
           <Route path="*" element={<University />} />
         </Routes>

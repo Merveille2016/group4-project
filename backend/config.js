@@ -1,6 +1,3 @@
-// Every auth-related setting in one place, read from the environment with safe defaults.
-// Tests override pieces of this through createApp({ config }).
-
 const num = (value, fallback) => {
   const n = Number(value);
   return Number.isFinite(n) && n > 0 ? n : fallback;
@@ -15,11 +12,13 @@ const clientUrls = (process.env.CLIENT_URL || 'http://localhost:5173,http://loca
 if (isProduction && !process.env.SESSION_SECRET) {
   throw new Error('SESSION_SECRET must be set in production');
 }
+if (isProduction && !process.env.TWO_FACTOR_KEY) {
+  throw new Error('TWO_FACTOR_KEY must be set in production');
+}
 
 module.exports = {
   isProduction,
   clientUrls,
-  // Where the password reset link in the email points (the frontend's reset page)
   appUrl: process.env.APP_URL || clientUrls[0],
   trustProxy: process.env.TRUST_PROXY || false,
 
@@ -31,11 +30,9 @@ module.exports = {
 
   refreshToken: {
     cookieName: 'uniguide.rt',
-    // Only sent to the auth routes, never to the rest of the API
     cookiePath: '/api/auth',
     days: num(process.env.REFRESH_TOKEN_DAYS, 7),
-    // Two tabs refreshing at once both present the same token; the slower one
-    // gets a 401 instead of being treated as a stolen token inside this window
+    // Two tabs refreshing at once send the same token, so allow a short overlap
     reuseGraceSeconds: 10,
   },
 
@@ -48,12 +45,25 @@ module.exports = {
     maxLength: 128,
   },
 
+  preAuth: {
+    cookieName: 'uniguide.pa',
+    cookiePath: '/api/auth/2fa',
+    minutes: 5,
+    maxAttempts: 5,
+  },
+
+  twoFactor: {
+    issuer: 'UniGuide Cameroon',
+    // Used to encrypt TOTP secrets in the database
+    key: process.env.TWO_FACTOR_KEY || 'uniguide-dev-only-2fa-key-change-me',
+    backupCodeCount: 10,
+  },
+
   lockout: {
     threshold: num(process.env.LOCKOUT_THRESHOLD, 5),
     minutes: num(process.env.LOCKOUT_MINUTES, 15),
   },
 
-  // Each auth endpoint gets its own limiter so one can't use up another's budget
   rateLimits: {
     login: { windowMinutes: 15, max: 10 },
     register: { windowMinutes: 60, max: 5 },
@@ -61,6 +71,8 @@ module.exports = {
     forgotPassword: { windowMinutes: 15, max: 5 },
     forgotPasswordPerEmail: { windowMinutes: 60, max: 3 },
     resetPassword: { windowMinutes: 15, max: 10 },
+    twoFactorVerify: { windowMinutes: 15, max: 10 },
+    twoFactorManage: { windowMinutes: 15, max: 20 },
   },
 
   smtp: {

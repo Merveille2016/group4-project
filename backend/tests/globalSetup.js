@@ -1,6 +1,4 @@
-// Starts one throwaway in-memory MongoDB for the whole test run.
-// Set TEST_MONGO_URI to use another server instead (each test file still gets its own
-// randomly named database, which is dropped when the file finishes).
+// Set TEST_MONGO_URI to use another server instead
 module.exports = async () => {
   if (process.env.TEST_MONGO_URI) return;
 
